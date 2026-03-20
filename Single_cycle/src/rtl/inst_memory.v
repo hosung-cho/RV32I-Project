@@ -3,24 +3,24 @@
 module inst_memory (
     input               clock,
     input               enable,
-    input      [10:0]   address,      // 2048 words
+    input      [13:0]   address,      // 16384 words (64KB)
     output reg [31:0]   instruction
 );
 
-    // Instruction memory array (2048 words x 32-bit)
-    reg [31:0] imem [2047:0];
+    // Instruction memory array (16384 words x 32-bit)
+    reg [31:0] imem [16383:0];
     
     integer i;
 
     // Initialize instruction memory
     initial begin
         // Initialize all memory to NOP (addi x0, x0, 0)
-        for (i = 0; i < 2048; i = i + 1) begin
+        for (i = 0; i < 16384; i = i + 1) begin
             imem[i] = 32'h00000013;  // NOP
         end
         
-        // Load instructions from file (optional)
-        // $readmemh("instructions.hex", imem);
+        // Load instructions from file
+        $readmemh("imem.hex", imem);
 
         // ========================================
         // Select Test: Change TEST_SELECT to choose test
@@ -33,9 +33,9 @@ module inst_memory (
         // 7: Upper Immediate (U-Type LUI, AUIPC)
         // ========================================
         
-        `define TEST_SELECT 1
-        
-        `ifdef TEST_SELECT
+        // Built-in tests are disabled by default for external HEX-based programs.
+        // To use built-in tests, define INTERNAL_TEST_SELECT and TEST_SELECT.
+        `ifdef INTERNAL_TEST_SELECT
             case (`TEST_SELECT)
                 // ========================================
                 // Test 1: I-Type Arithmetic & Logic
@@ -209,8 +209,7 @@ module inst_memory (
         `endif
         
         $display("Instruction Memory initialized at time %t", $time);
-        $display("RV32I Complete Instruction Set Test Loaded");
-        $display("Total instructions: 70");
+        $display("Instruction HEX load completed");
     end
 
     // Asynchronous read for instruction fetch

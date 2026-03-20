@@ -4,26 +4,26 @@ module data_memory (
     input               clock,
     input               enable,
     input               wren,           // write enable
-    input      [10:0]   address,        // 2048 words
+    input      [13:0]   address,        // 16384 words (64KB)
     input      [31:0]   write_data,
     input      [3:0]    byteena,        // byte enable
     output reg [31:0]   read_data
 );
 
-    // Data memory array (2048 words x 32-bit)
-    reg [31:0] dmem [2047:0];
+    // Data memory array (16384 words x 32-bit)
+    reg [31:0] dmem [16383:0];
     
     integer i;
 
     // Initialize data memory
     initial begin
         // Initialize all memory to 0
-        for (i = 0; i < 2048; i = i + 1) begin
+        for (i = 0; i < 16384; i = i + 1) begin
             dmem[i] = 32'h00000000;
         end
         
-        // Optional: load data from file
-        // $readmemh("data.hex", dmem);
+        // Load initial data from file
+        $readmemh("dmem.hex", dmem);
         
         $display("Data Memory initialized at time %t", $time);
     end

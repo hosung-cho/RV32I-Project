@@ -33,7 +33,7 @@ module RV32I_System(
   inst_memory iIMem (
     .clock       (clk),
     .enable      (1'b1),
-    .address     (fetch_addr[12:2]),  // Word address
+    .address     (fetch_addr[15:2]),  // Word address (64KB)
     .instruction (inst)
   );
 
@@ -42,7 +42,7 @@ module RV32I_System(
     .clock      (clk),
     .enable     (1'b1),
     .wren       (data_we),
-    .address    (data_addr[12:2]),   // Word address
+    .address    (data_addr[15:2]),   // Word address (64KB)
     .write_data (write_data),
     .byteena    (ByteEnable),
     .read_data  (read_data)
