@@ -1,0 +1,15 @@
+# build files
+*.o
+*.elf
+*.bin
+*.log
+
+# simulator
+*.vcd
+*.wlf
+
+# vscode
+.vscode/
+
+# temporary
+*.tmp
