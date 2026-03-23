@@ -15,11 +15,11 @@ module RV32I_System_tb();
   // Reset
   initial
   begin
-    reset <= 0; 
-    #50; 
     reset <= 1;
-    #50;
+    #50; 
     reset <= 0;
+    #50;
+    reset <= 1;
     cycle_count = 0;
     
     $display("========================================");
@@ -36,7 +36,7 @@ module RV32I_System_tb();
   
   // Cycle counter
   always @(posedge clk) begin
-    if (reset == 0)
+    if (reset == 1)
       cycle_count = cycle_count + 1;
   end
   
@@ -56,13 +56,13 @@ module RV32I_System_tb();
     
     // Check memory results based on TEST_SELECT
     $display("\nMemory Contents:");
-    $display("mem[0]  = 0x%h (%d)", iRV32I_System.iDMem.dmem[0], iRV32I_System.iDMem.dmem[0]);
-    $display("mem[1]  = 0x%h (%d)", iRV32I_System.iDMem.dmem[1], iRV32I_System.iDMem.dmem[1]);
-    $display("mem[2]  = 0x%h (%d)", iRV32I_System.iDMem.dmem[2], iRV32I_System.iDMem.dmem[2]);
-    $display("mem[3]  = 0x%h (%d)", iRV32I_System.iDMem.dmem[3], iRV32I_System.iDMem.dmem[3]);
-    $display("mem[4]  = 0x%h (%d)", iRV32I_System.iDMem.dmem[4], iRV32I_System.iDMem.dmem[4]);
-    $display("mem[5]  = 0x%h (%d)", iRV32I_System.iDMem.dmem[5], iRV32I_System.iDMem.dmem[5]);
-    $display("mem[6]  = 0x%h (%d)", iRV32I_System.iDMem.dmem[6], iRV32I_System.iDMem.dmem[6]);
+    $display("mem[0]  = 0x%h (%d)", iRV32I_System.iDMem.mem[0], iRV32I_System.iDMem.mem[0]);
+    $display("mem[1]  = 0x%h (%d)", iRV32I_System.iDMem.mem[1], iRV32I_System.iDMem.mem[1]);
+    $display("mem[2]  = 0x%h (%d)", iRV32I_System.iDMem.mem[2], iRV32I_System.iDMem.mem[2]);
+    $display("mem[3]  = 0x%h (%d)", iRV32I_System.iDMem.mem[3], iRV32I_System.iDMem.mem[3]);
+    $display("mem[4]  = 0x%h (%d)", iRV32I_System.iDMem.mem[4], iRV32I_System.iDMem.mem[4]);
+    $display("mem[5]  = 0x%h (%d)", iRV32I_System.iDMem.mem[5], iRV32I_System.iDMem.mem[5]);
+    $display("mem[6]  = 0x%h (%d)", iRV32I_System.iDMem.mem[6], iRV32I_System.iDMem.mem[6]);
     
     $display("\nRegister File Contents (Selected):");
     $display("x10 = 0x%h (%d)", iRV32I_System.icpu.i_datapath.i_regfile.x10, iRV32I_System.icpu.i_datapath.i_regfile.x10);
@@ -81,7 +81,7 @@ module RV32I_System_tb();
   
   // Detailed pipeline monitoring for debugging memory write
   always @(posedge clk) begin
-    if (reset == 0 && cycle_count > 0 && cycle_count <= 20) begin
+    if (reset == 1 && cycle_count > 0 && cycle_count <= 20) begin
       $display("\n=== Cycle %0d ===", cycle_count);
       $display("  IF:  PC=%h | Inst=%h", 
                iRV32I_System.icpu.i_datapath.pc, 

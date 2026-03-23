@@ -169,8 +169,8 @@ module aludec(input      [6:0] opcode,
 			 10'b0000000_000: ALUcontrol <= 5'b00000; // addition (add)
 			 10'b0100000_000: ALUcontrol <= 5'b10000; // subtraction (sub)
 			 10'b0000000_001: ALUcontrol <= 5'b00100; // shift-left logical (sll)
-			 10'b0000000_010: ALUcontrol <= 5'b10111; // set less than (slt)
-			 10'b0000000_011: ALUcontrol <= 5'b11000; // set less than unsigned (sltu)
+       	10'b0000000_010: ALUcontrol <= 5'b11000; // set less than (slt)
+       	10'b0000000_011: ALUcontrol <= 5'b10111; // set less than unsigned (sltu)
 			 10'b0000000_100: ALUcontrol <= 5'b00011; // xor (xor)
 			 10'b0000000_101: ALUcontrol <= 5'b00101; // shift-right logical (srl)
 			 10'b0100000_101: ALUcontrol <= 5'b00110; // shift-right arithmetic (sra)
@@ -185,8 +185,8 @@ module aludec(input      [6:0] opcode,
 			casez({funct7,funct3})
 			 10'b???????_000:  ALUcontrol <= 5'b00000; // addi (=add)
 			 10'b0000000_001:  ALUcontrol <= 5'b00100; // slli (=sll)
-			 10'b???????_010:  ALUcontrol <= 5'b10111; // slti (=slt)
-			 10'b???????_011:  ALUcontrol <= 5'b11000; // sltiu (=sltu)
+       	10'b???????_010:  ALUcontrol <= 5'b11000; // slti (=slt)
+       	10'b???????_011:  ALUcontrol <= 5'b10111; // sltiu (=sltu)
 			 10'b???????_100:  ALUcontrol <= 5'b00011; // xori (=xor)
 			 10'b0000000_101:  ALUcontrol <= 5'b00101; // srli (=srl)
 			 10'b0100000_101:  ALUcontrol <= 5'b00110; // srai (=sra)
@@ -378,8 +378,8 @@ module datapath(input         clk, reset,
 
   always @(posedge clk)
   begin
-     if (~reset)
-       pc <= 32'b0;
+     if (reset)
+       pc <= 32'h1000_0000;
      else if (~stall)
        pc <= next_pc;
   end
@@ -390,7 +390,7 @@ module datapath(input         clk, reset,
   
   always @(posedge clk)
   begin
-    if (~reset || flush) begin
+    if (reset || flush) begin
       IFID_pc <= 32'b0;
       IFID_inst <= 32'h00000013;  // NOP
     end
@@ -437,7 +437,7 @@ module datapath(input         clk, reset,
   
   always @(posedge clk)
   begin
-    if (~reset || flush) begin
+    if (reset || flush) begin
       IDEX_pc <= 32'b0;
       IDEX_rs1_data <= 32'b0;
       IDEX_rs2_data <= 32'b0;
@@ -502,6 +502,10 @@ module datapath(input         clk, reset,
   // EX Stage: Execute
   // ========================================
 
+  // EXMEM stage value that will eventually be written back.
+  wire [31:0] exmem_fwd_data;
+  assign exmem_fwd_data = (EXMEM_jal | EXMEM_jalr) ? EXMEM_pc_plus4 : EXMEM_aluout;
+
 
   // Forwarding logic for rs1 and rs2
   always @(*)
@@ -509,7 +513,7 @@ module datapath(input         clk, reset,
     case (forwardA)
       2'b00: forward_rs1_data = IDEX_rs1_data;
       2'b01: forward_rs1_data = rd_data;  // Forward from WB stage
-      2'b10: forward_rs1_data = EXMEM_aluout;  // Forward from MEM stage
+      2'b10: forward_rs1_data = exmem_fwd_data;  // Forward from MEM stage
       default: forward_rs1_data = IDEX_rs1_data;
     endcase
   end
@@ -519,7 +523,7 @@ module datapath(input         clk, reset,
     case (forwardB)
       2'b00: forward_rs2_data = IDEX_rs2_data;
       2'b01: forward_rs2_data = rd_data;  // Forward from WB stage
-      2'b10: forward_rs2_data = EXMEM_aluout;  // Forward from MEM stage
+      2'b10: forward_rs2_data = exmem_fwd_data;  // Forward from MEM stage
       default: forward_rs2_data = IDEX_rs2_data;
     endcase
   end
@@ -555,8 +559,8 @@ module datapath(input         clk, reset,
     else                                  alusrc2[31:0] = forward_rs2_data[31:0];
   end
   
-  // Branch destination calculation (EX stage)
-  assign branch_dest = IDEX_pc + IDEX_se_br_imm;
+  // Branch/JAL destination calculation (EX stage)
+  assign branch_dest = IDEX_pc + (IDEX_jal ? IDEX_se_jal_imm : IDEX_se_br_imm);
   
   // ========================================
   // EX/MEM Pipeline Register
@@ -564,7 +568,7 @@ module datapath(input         clk, reset,
   
   always @(posedge clk)
   begin
-    if (~reset || flush) begin
+    if (reset || flush) begin
       EXMEM_pc_plus4 <= 32'b0;
       EXMEM_aluout <= 32'b0;
       EXMEM_rs2_data <= 32'b0;
@@ -633,7 +637,10 @@ module datapath(input         clk, reset,
   
   // Memory interface outputs (MEM stage)
   assign MemAddr = EXMEM_aluout;
-  assign MemWData = EXMEM_rs2_data;
+  // Align store payload to selected byte lanes.
+  assign MemWData = (EXMEM_funct3 == 3'b000) ? (EXMEM_rs2_data << (8  * EXMEM_aluout[1:0])) :
+                    (EXMEM_funct3 == 3'b001) ? (EXMEM_rs2_data << (16 * EXMEM_aluout[1]))   :
+                                                EXMEM_rs2_data;
   assign MemWrite_out = EXMEM_MemWrite;
 
 
@@ -667,7 +674,7 @@ module datapath(input         clk, reset,
   
   always @(posedge clk)
   begin
-    if (~reset) begin
+    if (reset) begin
       MEMWB_aluout <= 32'b0;
       MEMWB_MemRData2RF <= 32'b0;
       MEMWB_pc_plus4 <= 32'b0;
