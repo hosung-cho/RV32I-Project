@@ -196,16 +196,15 @@ end
   reg [255:0] BR_NAME_NTK   [5:0];
 
   initial begin
-    `ifndef IVERILOG
-        $vcdpluson;
-    `endif
     `ifdef IVERILOG
         $dumpfile("cpu_tb.fst");
         $dumpvars(0, cpu_tb);
-    `endif
-    `ifdef FSDB
+    `elsif FSDB
         $fsdbDumpfile("wave.fsdb");
         $fsdbDumpvars(0);
+    `elsif XSIM
+        $dumpfile("cpu_tb.vcd");
+        $dumpvars(0, cpu_tb);
     `endif
 
     #0;

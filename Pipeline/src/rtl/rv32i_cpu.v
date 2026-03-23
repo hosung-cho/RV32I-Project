@@ -259,6 +259,7 @@ module datapath(input         clk, reset,
   reg [4:0]  IDEX_rs2;
   reg [4:0]  IDEX_rd;
   reg [2:0]  IDEX_funct3;
+  reg [6:0]  IDEX_opcode;
   // Control signals
   reg        IDEX_auipc;
   reg        IDEX_lui;
@@ -456,6 +457,7 @@ module datapath(input         clk, reset,
       IDEX_rs2 <= 5'b0;
       IDEX_rd <= 5'b0;
       IDEX_funct3 <= 3'b0;
+      IDEX_opcode <= 7'b0;
       // Control signals
       IDEX_auipc <= 1'b0;
       IDEX_lui <= 1'b0;
@@ -490,6 +492,7 @@ module datapath(input         clk, reset,
       IDEX_rs2 <= rs2;
       IDEX_rd <= rd;
       IDEX_funct3 <= funct3;
+      IDEX_opcode <= IFID_inst[6:0];
       // Control signals
       IDEX_auipc <= auipc;
       IDEX_lui <= lui;
@@ -509,8 +512,11 @@ module datapath(input         clk, reset,
   // ========================================
 
   // EXMEM stage value that will eventually be written back.
+  // For Load instructions, forward the memory data; otherwise forward ALU output.
   wire [31:0] exmem_fwd_data;
-  assign exmem_fwd_data = (EXMEM_jal | EXMEM_jalr) ? EXMEM_pc_plus4 : EXMEM_aluout;
+  assign exmem_fwd_data = (EXMEM_jal | EXMEM_jalr) ? EXMEM_pc_plus4 :
+                          (EXMEM_MemtoReg) ? MemRData2RF :  // Load instruction: forward memory data
+                          EXMEM_aluout;                     // Other instructions: forward ALU result
 
 
   // Forwarding logic for rs1 and rs2
@@ -655,8 +661,12 @@ module datapath(input         clk, reset,
   // ========================================
   
   // Load-use hazard detection
+  // Check rs1 always, but only check rs2 for S-type and R-type instructions
+  // (I-type arithmetic and load instructions use rs2 bits as immediate, not register)
+  wire is_S_type = (IDEX_opcode == 7'b0100011);  // Store
+  wire is_R_type = (IDEX_opcode == 7'b0110011);  // R-type
   assign stall = (IDEX_MemtoReg && 
-                  ((IDEX_rd == rs1) || (IDEX_rd == rs2)) && 
+                  ((IDEX_rd == rs1) || ((is_S_type || is_R_type) && (IDEX_rd == rs2))) && 
                   (IDEX_rd != 5'b0));
 
   // Bottleneck profiling: how often the pipeline stalls/flushed.
