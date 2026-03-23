@@ -21,8 +21,8 @@ module inst_memory #(
             mem[i] = 32'h00000013;  // NOP
         end
         
-        // Load instructions from file (optional)
-        // $readmemh("instructions.hex", mem);
+        // Load instructions from external file by default.
+        $readmemh("imem.hex", mem);
 
         // ========================================
         // PIPELINE CPU TEST SELECTION
@@ -36,9 +36,9 @@ module inst_memory #(
         // 8: Complex Program - Fibonacci Sequence
         // ========================================
         
-        `define TEST_SELECT 1
-        
-        `ifdef TEST_SELECT
+        // Built-in tests are disabled by default for external HEX-based programs.
+        // To use built-in tests, define INTERNAL_TEST_SELECT and TEST_SELECT.
+        `ifdef INTERNAL_TEST_SELECT
             case (`TEST_SELECT)
                 // ========================================
                 // Test 1: Basic Pipeline Test - No Hazards
@@ -289,6 +289,7 @@ module inst_memory #(
         
         $display("========================================");
         $display("Instruction Memory initialized at time %t", $time);
+        $display("Instruction HEX load completed");
         $display("RV32I Pipeline CPU Test Suite Loaded");
         $display("========================================");
     end

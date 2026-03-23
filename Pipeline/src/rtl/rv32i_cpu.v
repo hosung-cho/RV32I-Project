@@ -355,6 +355,12 @@ module datapath(input         clk, reset,
   reg  [31:0] rd_data;
   reg  [31:0] MemRData2RF;
 
+  // Temporary profiling counters (visible via hierarchical TB access)
+  reg [63:0] dbg_stall_count;
+  reg [63:0] dbg_flush_count;
+  reg [63:0] dbg_flush_branch_count;
+  reg [63:0] dbg_flush_jump_count;
+
   // Output IFID_inst for controller
   assign inst_decode = IFID_inst;
 
@@ -652,6 +658,27 @@ module datapath(input         clk, reset,
   assign stall = (IDEX_MemtoReg && 
                   ((IDEX_rd == rs1) || (IDEX_rd == rs2)) && 
                   (IDEX_rd != 5'b0));
+
+  // Bottleneck profiling: how often the pipeline stalls/flushed.
+  always @(posedge clk)
+  begin
+    if (reset) begin
+      dbg_stall_count <= 64'b0;
+      dbg_flush_count <= 64'b0;
+      dbg_flush_branch_count <= 64'b0;
+      dbg_flush_jump_count <= 64'b0;
+    end
+    else begin
+      if (stall)
+        dbg_stall_count <= dbg_stall_count + 1;
+      if (flush)
+        dbg_flush_count <= dbg_flush_count + 1;
+      if (btaken)
+        dbg_flush_branch_count <= dbg_flush_branch_count + 1;
+      if (EXMEM_jal | EXMEM_jalr)
+        dbg_flush_jump_count <= dbg_flush_jump_count + 1;
+    end
+  end
   
   // ========================================
   // Forwarding Unit

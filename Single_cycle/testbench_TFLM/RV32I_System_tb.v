@@ -7,7 +7,10 @@ module RV32I_System_tb();
   integer       cycle_count;
 
   parameter integer RESET_CYCLES   = 8;
-  parameter integer TIMEOUT_CYCLES = 500000;
+  // TFLM startup/data-copy loops can take much longer than simple unit tests.
+  // Set to 0 to disable timeout.
+  parameter integer TIMEOUT_CYCLES = 500000000;
+  parameter integer PROGRESS_CYCLES = 1000000;
   parameter IMEM_HEX = "imem.hex";
   parameter DMEM_HEX = "dmem.hex";
 
@@ -46,6 +49,14 @@ module RV32I_System_tb();
       cycle_count <= cycle_count + 1;
   end
 
+  // Progress log for long-running TFLM simulations.
+  always @(posedge clk) begin
+    if (reset && PROGRESS_CYCLES > 0 && cycle_count > 0 && (cycle_count % PROGRESS_CYCLES) == 0) begin
+      $display("[TB] progress: cycles=%0d PC=0x%08h INST=0x%08h", cycle_count,
+               iRV32I_System.icpu.pc, iRV32I_System.icpu.inst);
+    end
+  end
+
   // Halt/timeout monitor.
   always @(posedge clk) begin
     if (reset && iRV32I_System.icpu.inst == 32'h0000006f) begin
@@ -62,7 +73,7 @@ module RV32I_System_tb();
       $finish;
     end
 
-    if (reset && cycle_count >= TIMEOUT_CYCLES) begin
+    if (reset && TIMEOUT_CYCLES > 0 && cycle_count >= TIMEOUT_CYCLES) begin
       $display("\n[TB][ERROR] Timeout after %0d cycles", TIMEOUT_CYCLES);
       $display(" PC=0x%08h INST=0x%08h", iRV32I_System.icpu.pc, iRV32I_System.icpu.inst);
       $finish;
