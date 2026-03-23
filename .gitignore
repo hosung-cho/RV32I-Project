@@ -11,6 +11,22 @@
 sim_external_tb
 sim_tflm_tb
 
+# vivado/xsim generated outputs
+Pipeline/sim_out/
+Single_cycle/sim_out/
+Pipeline/xsim.dir/
+Single_cycle/xsim.dir/
+Pipeline/*.jou
+Single_cycle/*.jou
+Pipeline/*.pb
+Single_cycle/*.pb
+Pipeline/*.wdb
+Single_cycle/*.wdb
+Pipeline/imem.hex
+Pipeline/dmem.hex
+Single_cycle/imem.hex
+Single_cycle/dmem.hex
+
 # per-arch TFLM sim workspace outputs
 Single_cycle/sim_tflm/imem.hex
 Single_cycle/sim_tflm/dmem.hex
