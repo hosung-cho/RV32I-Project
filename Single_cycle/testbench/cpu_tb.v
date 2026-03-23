@@ -50,22 +50,10 @@ module cpu_tb();
   // );
 
   // instantiate device to be tested
-  // Reset: Low Active
-  RV32I_System  #(
-      .RESET_PC(32'h1000_0000),
-      .MIF_HEX("")
-  ) CPU (
+  // reset is active-low at system top (RV32I_System internally inverts it)
+  RV32I_System CPU (
         .CLOCK_50  (clk),
-        .BUTTON    ({2'b00,~rst}),
-        .SW        (10'b0),
-        .HEX3   (),
-        .HEX2   (),
-        .HEX1   (),
-        .HEX0   (),
-        .LEDR   (),
-
-        .UART_TXD (),
-        .UART_RXD (1'b0)
+        .reset     (rst)
     );
 
 
@@ -87,14 +75,15 @@ module cpu_tb();
     end
   endtask
 
-  task reset_cpu; 
+  task reset_cpu;
       begin
+    // RV32I_System reset is active-low at top-level input.
     repeat (3) begin
       @(negedge clk);
-      rst = 1;
+      rst = 0;
     end
     @(negedge clk);
-    rst = 0;
+    rst = 1;
 end
   endtask
 
@@ -220,15 +209,16 @@ end
     `endif
 
     #0;
-    rst = 0;
+    // Keep CPU out of reset by default (active-low reset input).
+    rst = 1;
 
     // Reset the CPU
-    rst = 1;
+    rst = 0;
     // Hold reset for a while
     repeat (10) @(posedge clk);
 
     @(negedge clk);
-    rst = 0;
+    rst = 1;
 
 if (1) begin
     // Test R-Type Insts --------------------------------------------------

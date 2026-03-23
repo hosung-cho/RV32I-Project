@@ -165,8 +165,8 @@ module aludec(input      [6:0] opcode,
 			 10'b0000000_000: ALUcontrol <= 5'b00000; // addition (add)
 			 10'b0100000_000: ALUcontrol <= 5'b10000; // subtraction (sub)
 			 10'b0000000_001: ALUcontrol <= 5'b00100; // shift-left logical (sll)
-			 10'b0000000_010: ALUcontrol <= 5'b10111; // set less than (slt)
-			 10'b0000000_011: ALUcontrol <= 5'b11000; // set less than unsigned (sltu)
+			 10'b0000000_010: ALUcontrol <= 5'b11000; // set less than (slt)
+			 10'b0000000_011: ALUcontrol <= 5'b10111; // set less than unsigned (sltu)
 			 10'b0000000_100: ALUcontrol <= 5'b00011; // xor (xor)
 			 10'b0000000_101: ALUcontrol <= 5'b00101; // shift-right logical (srl)
 			 10'b0100000_101: ALUcontrol <= 5'b00110; // shift-right arithmetic (sra)
@@ -181,8 +181,8 @@ module aludec(input      [6:0] opcode,
 			casez({funct7,funct3})
 			 10'b???????_000:  ALUcontrol <= 5'b00000; // addi (=add)
 			 10'b0000000_001:  ALUcontrol <= 5'b00100; // slli (=sll)
-			 10'b???????_010:  ALUcontrol <= 5'b10111; // slti (=slt)
-			 10'b???????_011:  ALUcontrol <= 5'b11000; // sltiu (=sltu)
+			 10'b???????_010:  ALUcontrol <= 5'b11000; // slti (=slt)
+			 10'b???????_011:  ALUcontrol <= 5'b10111; // sltiu (=sltu)
 			 10'b???????_100:  ALUcontrol <= 5'b00011; // xori (=xor)
 			 10'b0000000_101:  ALUcontrol <= 5'b00101; // srli (=srl)
 			 10'b0100000_101:  ALUcontrol <= 5'b00110; // srai (=sra)
@@ -288,7 +288,7 @@ module datapath(input         clk, reset,
 
   always @(posedge clk, posedge reset)
   begin
-     if (reset)  pc <= 32'b0;
+	  if (reset)  pc <= 32'h1000_0000;
 	  else 
 	  begin
 	      if (btaken)     // branch_taken
@@ -327,7 +327,10 @@ module datapath(input         clk, reset,
     .rs2_data	(rs2_data));
 
 
-	assign MemWData = rs2_data;
+	// Align store payload to selected byte lanes.
+	assign MemWData = (funct3 == 3'b000) ? (rs2_data << (8  * aluout[1:0])) : // SB
+	                  (funct3 == 3'b001) ? (rs2_data << (16 * aluout[1]))   : // SH
+	                                          rs2_data;                         // SW
 
 
 	//
