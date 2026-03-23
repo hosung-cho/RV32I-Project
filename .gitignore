@@ -7,6 +7,19 @@
 # simulator
 *.vcd
 *.wlf
+*.fst
+sim_external_tb
+sim_tflm_tb
+
+# per-arch TFLM sim workspace outputs
+Single_cycle/sim_tflm/imem.hex
+Single_cycle/sim_tflm/dmem.hex
+Single_cycle/sim_tflm/sim_tflm_tb
+Single_cycle/sim_tflm/sim.log
+Pipeline/sim_tflm/imem.hex
+Pipeline/sim_tflm/dmem.hex
+Pipeline/sim_tflm/sim_tflm_tb
+Pipeline/sim_tflm/sim.log
 
 # vscode
 .vscode/
