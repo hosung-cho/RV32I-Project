@@ -7,13 +7,19 @@ SRCS="main_pointwise.cc \
 
 # ===== 2. ELF 생성 =====
 riscv32-unknown-elf-g++ -march=rv32i -mabi=ilp32 -O2 \
+  -ffunction-sections \
+  -fdata-sections \
+  -Wl,--gc-sections \
+  -Wl,-e,main \
+  -nostdlib \
+  -DNDEBUG \
   -I. \
   -I./tensorflow \
   -I./tensorflow/lite \
   -I./tensorflow/lite/kernels \
   -I./tensorflow/lite/micro/tools/make/downloads/gemmlowp \
   --specs=nosys.specs \
-  $SRCS -o main_pointwise.elf
+  $SRCS -lgcc -o main_pointwise.elf
 
 echo "[1] ELF build completed."
 
