@@ -196,7 +196,7 @@ end
   reg [255:0] BR_NAME_NTK   [5:0];
 
   initial begin
-    `ifndef IVERILOG
+    `ifdef VCS
         $vcdpluson;
     `endif
     `ifdef IVERILOG
