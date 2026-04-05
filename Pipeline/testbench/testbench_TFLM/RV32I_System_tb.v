@@ -42,6 +42,7 @@ module RV32I_System_tb();
   parameter integer LOOP_SPAN_MAX = 256;
   parameter integer LOOP_JUMP_DELTA_MIN = 100000;
   parameter integer LOOP_WARN_STREAK = 2;
+  parameter [31:0] STACK_INIT_SP = 32'h2001_0000;
   parameter IMEM_HEX = "imem.hex";
   parameter DMEM_HEX = "dmem.hex";
 
@@ -101,6 +102,9 @@ module RV32I_System_tb();
     $readmemh(IMEM_HEX, iRV32I_System.iIMem.mem);
     $display("[TB] Loading %0s into DMEM", DMEM_HEX);
     $readmemh(DMEM_HEX, iRV32I_System.iDMem.mem);
+    // Bootcode-less binary support: initialize x2(sp) before entering main.
+    iRV32I_System.icpu.i_datapath.i_regfile.mem[2] = STACK_INIT_SP;
+    $display("[TB] Initialized x2(sp) to 0x%08h", STACK_INIT_SP);
 
     @(negedge clk);
     reset = 1'b1;
