@@ -1,6 +1,8 @@
 `timescale 1ns/1ns
 
-module RV32I_System(
+module RV32I_System #(
+  parameter [31:0] CPU_RESET_PC = 32'h1000_0000
+)(
   input         CLOCK_50,
   input         reset
 );
@@ -17,7 +19,9 @@ module RV32I_System(
   assign clk = CLOCK_50;
 
   // CPU instantiation
-  rv32i_cpu icpu (
+  rv32i_cpu #(
+    .RESET_PC (CPU_RESET_PC)
+  ) icpu (
     .clk        (clk), 
     .reset      (~reset),
     .pc         (fetch_addr),

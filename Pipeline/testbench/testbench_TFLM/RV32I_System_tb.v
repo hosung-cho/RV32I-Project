@@ -55,7 +55,9 @@ module RV32I_System_tb();
                                   iRV32I_System.icpu.i_datapath.EXMEM_pc_plus4);
 
   // instantiate device to be tested
-  RV32I_System iRV32I_System (
+    RV32I_System #(
+      .CPU_RESET_PC (32'h0000_0000)
+    ) iRV32I_System (
         .CLOCK_50  (clk),
         .reset     (reset)
   );

@@ -1,6 +1,8 @@
 `timescale 1ns/1ns
 
-module rv32i_cpu (
+module rv32i_cpu #(
+            parameter [31:0] RESET_PC = 32'h1000_0000
+) (
 		      input         clk, reset,
             output [31:0] pc,		  		// program counter for instruction fetch
             input  [31:0] inst, 			// incoming instruction
@@ -386,7 +388,7 @@ module datapath(input         clk, reset,
   always @(posedge clk)
   begin
      if (reset)
-       pc <= 32'h1000_0000;
+       pc <= RESET_PC;
      else if (~stall)
        pc <= next_pc;
   end
