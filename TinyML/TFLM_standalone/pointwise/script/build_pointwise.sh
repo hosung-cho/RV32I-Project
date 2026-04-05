@@ -15,6 +15,7 @@ ASM_FILE="${BUILD_DIR}/main_pointwise_full.asm"
 BIN_FILE="${BUILD_DIR}/main_pointwise.bin"
 IMEM_HEX_FILE="${BUILD_DIR}/imem.hex"
 DMEM_HEX_FILE="${BUILD_DIR}/dmem.hex"
+LINKER_SCRIPT="${SRC_DIR}/custom_memory_noboot.ld"
 
 # ===== 1. 소스 파일 목록 =====
 SRCS=(
@@ -28,7 +29,7 @@ riscv32-unknown-elf-g++ -march=rv32i -mabi=ilp32 -O2 \
   -ffunction-sections \
   -fdata-sections \
   -Wl,--gc-sections \
-  -Wl,-e,main \
+  -T "${LINKER_SCRIPT}" \
   -nostdlib \
   -DNDEBUG \
   -I"${TFLM_ROOT}" \
@@ -55,11 +56,30 @@ echo "[3] Raw binary generated."
 # 부트코드 없이 main 엔트리로 빌드하더라도 TB가 바로 읽을 수 있도록
 # 명령어/데이터 메모리 파일을 분리 생성한다.
 riscv32-unknown-elf-objcopy -O verilog --verilog-data-width=4 \
-  -j .text -j .rodata "${ELF_FILE}" "${IMEM_HEX_FILE}"
+  -j .text -j .rodata -j .srodata -j .eh_frame "${ELF_FILE}" "${IMEM_HEX_FILE}"
 echo "[4-1] IMEM Hex file generated: ${IMEM_HEX_FILE}"
 
-riscv32-unknown-elf-objcopy -O verilog --verilog-data-width=4 \
-  -j .data --change-section-address .data=0 "${ELF_FILE}" "${DMEM_HEX_FILE}"
-echo "[4-2] DMEM Hex file generated: ${DMEM_HEX_FILE}"
+if riscv32-unknown-elf-objdump -h "${ELF_FILE}" | grep -q "[.]data\|[.]sdata"; then
+  riscv32-unknown-elf-objcopy -O verilog --verilog-data-width=4 \
+    --change-addresses -0x20000000 \
+    -j .sdata -j .data "${ELF_FILE}" "${DMEM_HEX_FILE}"
+  echo "[4-2] DMEM Hex file generated: ${DMEM_HEX_FILE}"
+else
+  {
+    echo "@00000000"
+    echo "00000000"
+  } > "${DMEM_HEX_FILE}"
+  echo "[4-2] No .data/.sdata section found. Created zero-initialized DMEM file: ${DMEM_HEX_FILE}"
+fi
+
+# Some toolchain outputs contain a zero-sized .data section name only.
+# In that case objcopy can produce an empty file, so force a valid base address line.
+if [[ ! -s "${DMEM_HEX_FILE}" ]]; then
+  {
+    echo "@00000000"
+    echo "00000000"
+  } > "${DMEM_HEX_FILE}"
+  echo "[4-2] DMEM Hex was empty. Wrote default base entry at @00000000"
+fi
 
 echo "========== Build Completed =========="
