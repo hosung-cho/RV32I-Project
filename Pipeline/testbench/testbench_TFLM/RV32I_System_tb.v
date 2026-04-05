@@ -37,6 +37,7 @@ module RV32I_System_tb();
   parameter integer TIMEOUT_CYCLES = 500000000;
   parameter integer PROGRESS_CYCLES = 1000000;
   parameter integer CLI_TIME_LOG_MS = 10;
+  parameter integer ENABLE_RUNTIME_STATS = 1;
   localparam integer NS_PER_MS = 1000000;
   parameter integer PC_RATE_WINDOW = 1024;
   parameter integer PC_STUCK_RATE_X100 = 500;  // 5.00%
@@ -134,7 +135,7 @@ module RV32I_System_tb();
 
   // Progress log for long-running TFLM simulations.
   always @(posedge clk) begin
-    if (reset && PROGRESS_CYCLES > 0 && cycle_count > 0 && (cycle_count % PROGRESS_CYCLES) == 0) begin
+    if (ENABLE_RUNTIME_STATS && reset && PROGRESS_CYCLES > 0 && cycle_count > 0 && (cycle_count % PROGRESS_CYCLES) == 0) begin
       stall_delta  = iRV32I_System.icpu.i_datapath.dbg_stall_count - prev_stall_count;
       flush_delta  = iRV32I_System.icpu.i_datapath.dbg_flush_count - prev_flush_count;
       branch_delta = iRV32I_System.icpu.i_datapath.dbg_flush_branch_count - prev_branch_count;
@@ -199,45 +200,47 @@ module RV32I_System_tb();
   // Halt/timeout monitor.
   always @(posedge clk) begin
     if (reset) begin
-      if (interval_sample_count == 0) begin
-        interval_pc_min <= iRV32I_System.icpu.pc;
-        interval_pc_max <= iRV32I_System.icpu.pc;
-        interval_last_pc <= iRV32I_System.icpu.pc;
-        interval_sample_count <= 1;
-      end
-      else begin
-        if (iRV32I_System.icpu.pc < interval_pc_min)
+      if (ENABLE_RUNTIME_STATS) begin
+        if (interval_sample_count == 0) begin
           interval_pc_min <= iRV32I_System.icpu.pc;
-        if (iRV32I_System.icpu.pc > interval_pc_max)
           interval_pc_max <= iRV32I_System.icpu.pc;
-        if (iRV32I_System.icpu.pc == interval_last_pc)
-          interval_samepc_count <= interval_samepc_count + 1;
-        interval_last_pc <= iRV32I_System.icpu.pc;
-        interval_sample_count <= interval_sample_count + 1;
-      end
+          interval_last_pc <= iRV32I_System.icpu.pc;
+          interval_sample_count <= 1;
+        end
+        else begin
+          if (iRV32I_System.icpu.pc < interval_pc_min)
+            interval_pc_min <= iRV32I_System.icpu.pc;
+          if (iRV32I_System.icpu.pc > interval_pc_max)
+            interval_pc_max <= iRV32I_System.icpu.pc;
+          if (iRV32I_System.icpu.pc == interval_last_pc)
+            interval_samepc_count <= interval_samepc_count + 1;
+          interval_last_pc <= iRV32I_System.icpu.pc;
+          interval_sample_count <= interval_sample_count + 1;
+        end
 
-      pc_changed_now = (iRV32I_System.icpu.pc != prev_pc_rate);
-      if (pc_change_samples < PC_RATE_WINDOW) begin
-        pc_change_hist[pc_change_samples] <= pc_changed_now;
-        if (pc_changed_now)
-          pc_change_sum <= pc_change_sum + 1;
-        pc_change_samples <= pc_change_samples + 1;
-      end
-      else begin
-        pc_hist_oldest = pc_change_hist[PC_RATE_WINDOW-1];
-        pc_change_hist <= {pc_change_hist[PC_RATE_WINDOW-2:0], pc_changed_now};
-        pc_change_sum <= pc_change_sum + (pc_changed_now ? 1 : 0) - (pc_hist_oldest ? 1 : 0);
-      end
+        pc_changed_now = (iRV32I_System.icpu.pc != prev_pc_rate);
+        if (pc_change_samples < PC_RATE_WINDOW) begin
+          pc_change_hist[pc_change_samples] <= pc_changed_now;
+          if (pc_changed_now)
+            pc_change_sum <= pc_change_sum + 1;
+          pc_change_samples <= pc_change_samples + 1;
+        end
+        else begin
+          pc_hist_oldest = pc_change_hist[PC_RATE_WINDOW-1];
+          pc_change_hist <= {pc_change_hist[PC_RATE_WINDOW-2:0], pc_changed_now};
+          pc_change_sum <= pc_change_sum + (pc_changed_now ? 1 : 0) - (pc_hist_oldest ? 1 : 0);
+        end
 
-      if (pc_change_samples >= PC_RATE_WINDOW) begin
-        pc_change_rate_x100 <= (pc_change_sum * 10000) / PC_RATE_WINDOW;
-        if (pc_change_rate_x100 <= PC_STUCK_RATE_X100)
-          stuck_lowrate_streak <= stuck_lowrate_streak + 1;
-        else
-          stuck_lowrate_streak <= 0;
-      end
+        if (pc_change_samples >= PC_RATE_WINDOW) begin
+          pc_change_rate_x100 <= (pc_change_sum * 10000) / PC_RATE_WINDOW;
+          if (pc_change_rate_x100 <= PC_STUCK_RATE_X100)
+            stuck_lowrate_streak <= stuck_lowrate_streak + 1;
+          else
+            stuck_lowrate_streak <= 0;
+        end
 
-      prev_pc_rate <= iRV32I_System.icpu.pc;
+        prev_pc_rate <= iRV32I_System.icpu.pc;
+      end
     end
 
     // In a pipeline, IF-stage instruction bus can briefly show wrong-path instructions.
@@ -256,7 +259,7 @@ module RV32I_System_tb();
       $display(" Time: %t", $time);
       $display(" Cycles: %0d", cycle_count);
       $display(" PC=0x%08h INST=0x%08h", iRV32I_System.icpu.pc, iRV32I_System.icpu.inst);
-      if (pc_change_samples >= PC_RATE_WINDOW)
+      if (ENABLE_RUNTIME_STATS && pc_change_samples >= PC_RATE_WINDOW)
         $display(" PC change rate(last %0d): %0d.%02d%%", PC_RATE_WINDOW,
                  pc_change_rate_x100 / 100, pc_change_rate_x100 % 100);
       $display(" stall=%0d, flush=%0d (branch=%0d, jump=%0d)",
@@ -276,7 +279,7 @@ module RV32I_System_tb();
     if (reset && TIMEOUT_CYCLES > 0 && cycle_count >= TIMEOUT_CYCLES) begin
       $display("\n[TB][ERROR] Timeout after %0d cycles", TIMEOUT_CYCLES);
       $display(" PC=0x%08h INST=0x%08h", iRV32I_System.icpu.pc, iRV32I_System.icpu.inst);
-      if (pc_change_samples >= PC_RATE_WINDOW)
+      if (ENABLE_RUNTIME_STATS && pc_change_samples >= PC_RATE_WINDOW)
         $display(" PC change rate(last %0d): %0d.%02d%%", PC_RATE_WINDOW,
                  pc_change_rate_x100 / 100, pc_change_rate_x100 % 100);
       $display(" stall=%0d, flush=%0d (branch=%0d, jump=%0d)",

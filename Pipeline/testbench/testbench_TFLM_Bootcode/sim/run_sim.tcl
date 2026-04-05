@@ -30,6 +30,10 @@ puts "\[Tcl\] 4. 시뮬레이션 설정..."
 # 끝까지 돌리려면 아래와 같이 runtime을 'all'로 설정합니다.
 set_property -name {xsim.simulate.runtime} -value {all} -objects [get_filesets sim_1]
 
+# 순수 RTL 테스트벤치에서는 glbl(기본 1ps timescale) 자동 로드를 끄면
+# 의도한 timescale(1ns/1ns)이 전체 시뮬레이션 해상도로 유지됩니다.
+set_property -name {xsim.elaborate.load_glbl} -value {false} -objects [get_filesets sim_1]
+
 # 디버깅을 위해 모든 신호의 파형을 저장하고 싶다면 아래 옵션을 켭니다.
 set_property -name {xsim.simulate.log_all_signals} -value {true} -objects [get_filesets sim_1]
 
