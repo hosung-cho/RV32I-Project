@@ -108,9 +108,11 @@ int main() {
         output_data
     );
 
-    // 5) 결과 사용
-    // 베어메탈에서는 printf/std::cout를 쓰기 어려운 경우가 많으므로
-    // 첫 번째 출력값을 반환해 디버거나 시뮬레이터에서 동작 여부를 확인합니다.
-    // 또한 반환값 사용으로 계산 결과가 최적화로 제거되는 것을 방지합니다.
-    return output_data[0];
+    // 5) 결과를 a0(x10)에 남기고 종료 루프로 진입
+    // 부트코드 없는 엔트리에서는 return 이후 복귀 주소가 유효하지 않으므로
+    // TB가 인식하는 self-loop(jal x0,0) 형태로 정지시킨다.
+    register int32_t a0_out asm("a0") = output_data[0];
+    (void)a0_out;
+    asm volatile ("j .");
+    __builtin_unreachable();
 }
