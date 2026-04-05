@@ -28,6 +28,9 @@ SRCS=(
 riscv32-unknown-elf-g++ -march=rv32i -mabi=ilp32 -O2 \
   -ffunction-sections \
   -fdata-sections \
+  -fno-builtin \
+  -fno-builtin-memset \
+  -fno-builtin-memcpy \
   -Wl,--gc-sections \
   -T "${LINKER_SCRIPT}" \
   -nostdlib \
