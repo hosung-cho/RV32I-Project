@@ -36,6 +36,8 @@ module RV32I_System_tb();
   // Set to 0 to disable timeout.
   parameter integer TIMEOUT_CYCLES = 500000000;
   parameter integer PROGRESS_CYCLES = 1000000;
+  parameter integer CLI_TIME_LOG_MS = 10;
+  localparam integer NS_PER_MS = 1000000;
   parameter integer PC_RATE_WINDOW = 1024;
   parameter integer PC_STUCK_RATE_X100 = 500;  // 5.00%
   parameter integer STUCK_WARN_STREAK = 3;
@@ -117,6 +119,17 @@ module RV32I_System_tb();
   always @(posedge clk) begin
     if (reset)
       cycle_count <= cycle_count + 1;
+  end
+
+  // Periodic wall-clock style heartbeat for CLI visibility.
+  initial begin
+    if (CLI_TIME_LOG_MS > 0) begin
+      forever begin
+        #(CLI_TIME_LOG_MS * NS_PER_MS);
+        if (reset)
+          $display("[TB][TIME] sim_time=%0t (%0d ms)", $time, $time / NS_PER_MS);
+      end
+    end
   end
 
   // Progress log for long-running TFLM simulations.

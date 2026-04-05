@@ -30,8 +30,9 @@ puts "\[Tcl\] 4. 시뮬레이션 설정..."
 # 끝까지 돌리려면 아래와 같이 runtime을 'all'로 설정합니다.
 set_property -name {xsim.simulate.runtime} -value {all} -objects [get_filesets sim_1]
 
-# 디버깅을 위해 모든 신호의 파형을 저장하고 싶다면 아래 옵션을 켭니다.
-set_property -name {xsim.simulate.log_all_signals} -value {true} -objects [get_filesets sim_1]
+# 전체 신호 파형 저장은 시뮬레이션을 크게 느리게 하므로 기본값은 비활성화합니다.
+# 상세 파형이 필요할 때만 true로 바꿔 사용하세요.
+set_property -name {xsim.simulate.log_all_signals} -value {false} -objects [get_filesets sim_1]
 
 puts "\[Tcl\] 5. 컴파일 및 시뮬레이션 실행!"
 # launch_simulation 명령어 하나가 컴파일(xvlog) -> 빌드(xelab) -> 실행(xsim)을 모두 자동 수행합니다.

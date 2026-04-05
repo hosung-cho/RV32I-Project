@@ -37,7 +37,9 @@ module rv32i_cpu #(
 		.ALUcontrol	(ALUcontrol));
 
   // Instantiate Datapath
-  datapath i_datapath(
+  datapath #(
+    .RESET_PC(RESET_PC)
+  ) i_datapath(
 		.clk				(clk),
 		.reset			(reset),
 		.auipc			(auipc),
@@ -219,7 +221,10 @@ endmodule
 //
 // CPU datapath (5-stage pipeline)
 //
-module datapath(input         clk, reset,
+module datapath #(
+                parameter [31:0] RESET_PC = 32'h1000_0000
+) (
+                input         clk, reset,
                 input  [31:0] inst,
                 output [31:0] inst_decode,
                 input         auipc,
