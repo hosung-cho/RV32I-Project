@@ -30,6 +30,7 @@ Single_cycle/dmem.hex
 Single_cycle/sim/vivado/build
 Single_cycle/sim/vivado/logs
 Single_cycle/testbench/testbench_Basic/sim/sim_workspace
+Pipeline/testbench/testbench_TFLM_Bootcode/sim/sim_workspace
 
 # per-arch TFLM sim workspace outputs
 Single_cycle/sim_tflm/imem.hex
