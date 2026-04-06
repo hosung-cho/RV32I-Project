@@ -46,6 +46,9 @@ module RV32I_System_tb();
   parameter integer LOOP_JUMP_DELTA_MIN = 100000;
   parameter integer LOOP_WARN_STREAK = 2;
   parameter [31:0] STACK_INIT_SP = 32'h2001_0000;
+  parameter integer DUMP_DMEM_AFTER_HALT = 1;
+  parameter [31:0] DUMP_BASE_ADDR = 32'h2000_F000;
+  parameter integer DUMP_BYTE_COUNT = 128;
   parameter IMEM_HEX = "imem.hex";
   parameter DMEM_HEX = "dmem.hex";
 
@@ -56,6 +59,44 @@ module RV32I_System_tb();
                                 (iRV32I_System.icpu.i_datapath.EXMEM_rd == 5'd0) &&
                                 ((iRV32I_System.icpu.i_datapath.EXMEM_branch_dest + 32'd4) ==
                                   iRV32I_System.icpu.i_datapath.EXMEM_pc_plus4);
+
+  task dump_dmem_window;
+    integer word_base;
+    integer word_count;
+    integer i;
+    integer b0;
+    integer b1;
+    integer b2;
+    integer b3;
+    reg [31:0] w;
+    begin
+      word_base = (DUMP_BASE_ADDR - 32'h2000_0000) >> 2;
+      word_count = (DUMP_BYTE_COUNT + 3) >> 2;
+      if (word_base < 0)
+        word_base = 0;
+      if (word_base >= 16384)
+        word_base = 16383;
+      if (word_count < 0)
+        word_count = 0;
+      if ((word_base + word_count) > 16384)
+        word_count = 16384 - word_base;
+
+      $display("[TB][DMEM] dump base=0x%08h bytes=%0d words=%0d", DUMP_BASE_ADDR, DUMP_BYTE_COUNT, word_count);
+      for (i = 0; i < word_count; i = i + 1) begin
+        w = iRV32I_System.iDMem.mem[word_base + i];
+        b0 = w[7:0];
+        b1 = w[15:8];
+        b2 = w[23:16];
+        b3 = w[31:24];
+        if (b0 >= 128) b0 = b0 - 256;
+        if (b1 >= 128) b1 = b1 - 256;
+        if (b2 >= 128) b2 = b2 - 256;
+        if (b3 >= 128) b3 = b3 - 256;
+        $display("[TB][DMEM] 0x%08h : 0x%08h | s8={%0d,%0d,%0d,%0d}",
+                 DUMP_BASE_ADDR + (i * 4), w, b0, b1, b2, b3);
+      end
+    end
+  endtask
 
   // instantiate device to be tested
     RV32I_System #(
@@ -272,6 +313,8 @@ module RV32I_System_tb();
       $display(" dmem[0]=0x%08h dmem[1]=0x%08h dmem[2]=0x%08h dmem[3]=0x%08h",
                iRV32I_System.iDMem.mem[0], iRV32I_System.iDMem.mem[1],
                iRV32I_System.iDMem.mem[2], iRV32I_System.iDMem.mem[3]);
+      if (DUMP_DMEM_AFTER_HALT)
+        dump_dmem_window();
       $display("==============================================\n");
       $finish;
     end
@@ -287,6 +330,8 @@ module RV32I_System_tb();
                iRV32I_System.icpu.i_datapath.dbg_flush_count,
                iRV32I_System.icpu.i_datapath.dbg_flush_branch_count,
                iRV32I_System.icpu.i_datapath.dbg_flush_jump_count);
+      if (DUMP_DMEM_AFTER_HALT)
+        dump_dmem_window();
       $finish;
     end
   end
