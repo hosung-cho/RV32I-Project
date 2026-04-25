@@ -6,15 +6,19 @@ module RV32I_System(
 );
 
   wire clk;
-  wire [31:0] fetch_addr;
-  wire [31:0] inst;
-  wire [31:0] data_addr;
-  wire [31:0] write_data;
-  wire [31:0] read_data;
-  wire [3:0]  ByteEnable;
-  wire        data_we;
+  // 보고 싶은 신호에 mark_debug 속성 추가 (로직 삭제 방지 및 디버깅용)
+  (* mark_debug = "true" *) wire [31:0] fetch_addr;
+  (* mark_debug = "true" *) wire [31:0] inst;
+  (* mark_debug = "true" *) wire [31:0] data_addr;
+  (* mark_debug = "true" *) wire [31:0] write_data;
+  (* mark_debug = "true" *) wire [31:0] read_data;
+  (* mark_debug = "true" *) wire [3:0]  ByteEnable;
+  (* mark_debug = "true" *) wire        data_we;
 
   assign clk = CLOCK_50;
+
+  // CPU가 끝났는지 확인하기 위한 디버그 신호 (예: jal x0, 0 이면 halt)
+  (* mark_debug = "true" *) wire        is_halted = (inst == 32'h0000006f);
 
   // CPU instantiation
   rv32i_cpu icpu (

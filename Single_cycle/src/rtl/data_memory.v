@@ -1,7 +1,8 @@
 `timescale 1 ns / 1 ns
 
 module data_memory #(
-    parameter DEPTH = 16384
+    parameter DEPTH = 16384,
+    parameter INIT_HEX = "dmem.hex"
 ) (
     input               clock,
     input               enable,
@@ -12,8 +13,8 @@ module data_memory #(
     output reg [31:0]   read_data
 );
 
-    // Data memory array
-    reg [31:0] mem [0:DEPTH-1];
+    // Force LUTRAM inference for the initial Ultra96 bring-up path.
+    (* ram_style = "distributed" *) reg [31:0] mem [0:DEPTH-1];
     
     integer i;
 
@@ -25,7 +26,7 @@ module data_memory #(
         end
         
         // Load initial data from file
-        $readmemh("dmem.hex", mem);
+        $readmemh(INIT_HEX, mem);
         
         $display("Data Memory initialized at time %t", $time);
     end

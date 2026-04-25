@@ -1,7 +1,8 @@
 `timescale 1 ns / 1 ns
 
 module inst_memory #(
-    parameter DEPTH = 16384
+    parameter DEPTH = 2048,
+    parameter INIT_HEX = "imem.hex"
 ) (
     input               clock,
     input               enable,
@@ -9,8 +10,8 @@ module inst_memory #(
     output reg [31:0]   instruction
 );
 
-    // Instruction memory array
-    reg [31:0] mem [0:DEPTH-1];
+    // Force LUTRAM-style ROM inference for small/medium FPGA bring-up images.
+    (* ram_style = "distributed", rom_style = "distributed" *) reg [31:0] mem [0:DEPTH-1];
     
     integer i;
 
@@ -22,7 +23,7 @@ module inst_memory #(
         end
         
         // Load instructions from file
-        $readmemh("imem.hex", mem);
+        $readmemh(INIT_HEX, mem);
 
         // ========================================
         // Select Test: Change TEST_SELECT to choose test
