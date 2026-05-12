@@ -34,6 +34,9 @@ Single_cycle/testbench/testbench_TFLM/sim/sim_workspace
 Pipeline/testbench/testbench_TFLM_Bootcode/sim/sim_workspace
 Pipeline/testbench/testbench_TFLM/sim/sim_workspace
 
+sim_workspace/
+*.jou
+
 # per-arch TFLM sim workspace outputs
 Single_cycle/sim_tflm/imem.hex
 Single_cycle/sim_tflm/dmem.hex
