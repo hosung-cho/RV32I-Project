@@ -426,6 +426,20 @@ module datapath #(
     end
   end
 
+  // Save instruction when stall begins
+  reg [31:0] stalled_inst;
+  reg was_stalled;
+  always @(posedge clk) begin
+      if (reset) begin
+          stalled_inst <= 32'h00000013;
+          was_stalled <= 1'b0;
+      end else begin
+          was_stalled <= stall;
+          if (~was_stalled && stall) // stall starts
+              stalled_inst <= inst;
+      end
+  end
+
   // ========================================
   // IF/ID Pipeline Register Update
   // ========================================
@@ -438,7 +452,7 @@ module datapath #(
     end
     else if (~stall) begin
       IFID_pc <= IF1_pc;
-      IFID_inst <= inst;
+      IFID_inst <= (was_stalled) ? stalled_inst : inst;
     end
     // else: stall이면 현재 값 유지
   end
@@ -703,10 +717,12 @@ module datapath #(
   // Load-use hazard detection
   // Check rs1 always, but only check rs2 for S-type and R-type instructions
   // (I-type arithmetic and load instructions use rs2 bits as immediate, not register)
-  wire is_S_type = (IDEX_opcode == 7'b0100011);  // Store
-  wire is_R_type = (IDEX_opcode == 7'b0110011);  // R-type
+  wire [6:0] id_opcode = IFID_inst[6:0];
+  wire is_S_type = (id_opcode == 7'b0100011);  // Store
+  wire is_R_type = (id_opcode == 7'b0110011);  // R-type
+  wire is_B_type = (id_opcode == 7'b1100011);  // Branch
   wire load_use_hazard = (IDEX_MemtoReg &&
-                          ((IDEX_rd == rs1) || ((is_S_type || is_R_type) && (IDEX_rd == rs2))) &&
+                          ((IDEX_rd == rs1) || ((is_S_type || is_R_type || is_B_type) && (IDEX_rd == rs2))) &&
                           (IDEX_rd != 5'b0));
   wire stall_req = load_use_hazard | (load_use_hold != 2'b00);
   always @(posedge clk)
