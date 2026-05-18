@@ -52,3 +52,6 @@ Pipeline/sim_tflm/sim.log
 
 # temporary
 *.tmp
+
+
+.agents/
