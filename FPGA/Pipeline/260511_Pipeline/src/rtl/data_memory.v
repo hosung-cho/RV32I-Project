@@ -30,20 +30,23 @@ module data_memory #(
         $display("Data Memory initialized at time %t", $time);
     end
 
-    // Synchronous write, synchronous read (BRAM-style)
+    // Synchronous write, asynchronous read
     always @(posedge clock) begin
-        if (enable) begin
-            if (wren) begin
-                // Byte-addressable write
-                if (byteena[0]) mem[address][7:0]   <= write_data[7:0];
-                if (byteena[1]) mem[address][15:8]  <= write_data[15:8];
-                if (byteena[2]) mem[address][23:16] <= write_data[23:16];
-                if (byteena[3]) mem[address][31:24] <= write_data[31:24];
-            end
-            read_data <= mem[address];
-        end else begin
-            read_data <= 32'h00000000;
+        if (enable && wren) begin
+            // Byte-addressable write
+            if (byteena[0]) mem[address][7:0]   <= write_data[7:0];
+            if (byteena[1]) mem[address][15:8]  <= write_data[15:8];
+            if (byteena[2]) mem[address][23:16] <= write_data[23:16];
+            if (byteena[3]) mem[address][31:24] <= write_data[31:24];
         end
+    end
+    
+    // Asynchronous read for better timing
+    always @(*) begin
+        if (enable)
+            read_data = mem[address];
+        else
+            read_data = 32'h00000000;
     end
 
 endmodule
