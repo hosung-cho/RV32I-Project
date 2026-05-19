@@ -252,6 +252,9 @@ module datapath #(
   // IF/ID Pipeline Register
   reg [31:0] IFID_pc;
   reg [31:0] IFID_inst;
+  reg [31:0] IF1_pc;
+  reg        flush_d;
+  reg        reset_nop_pending;
   
   // ID/EX Pipeline Register
   reg [31:0] IDEX_pc;
@@ -297,6 +300,17 @@ module datapath #(
   reg        EXMEM_branch;
   reg        EXMEM_jal;
   reg        EXMEM_jalr;
+
+  // MEM2 Pipeline Register (for synchronous memory read)
+  reg [31:0] MEM2_pc_plus4;
+  reg [31:0] MEM2_aluout;
+  reg [4:0]  MEM2_rd;
+  reg [2:0]  MEM2_funct3;
+  // Control signals
+  reg        MEM2_RegWrite;
+  reg        MEM2_MemtoReg;
+  reg        MEM2_jal;
+  reg        MEM2_jalr;
   
   // MEM/WB Pipeline Register
   reg [31:0] MEMWB_aluout;
@@ -368,6 +382,9 @@ module datapath #(
   reg [63:0] dbg_flush_count;
   reg [63:0] dbg_flush_branch_count;
   reg [63:0] dbg_flush_jump_count;
+  reg [1:0]  load_use_hold;
+  reg [31:0] stalled_inst;
+  reg        was_stalled;
 
   // Output IFID_inst for controller
   assign inst_decode = IFID_inst;
@@ -398,19 +415,51 @@ module datapath #(
        pc <= next_pc;
   end
 
+  // Track issued fetch addresses for synchronous instruction memory
+  always @(posedge clk)
+  begin
+    if (reset) begin
+      IF1_pc <= RESET_PC;
+      flush_d <= 1'b0;
+      reset_nop_pending <= 1'b1;
+    end
+    else begin
+      flush_d <= flush;
+      if (~stall)
+        IF1_pc <= pc;
+      if (~stall)
+        reset_nop_pending <= 1'b0;
+    end
+  end
+
+  // Save instruction when stall begins
+  always @(posedge clk) begin
+    if (reset) begin
+      stalled_inst <= 32'h00000013;
+      was_stalled <= 1'b0;
+    end else begin
+      was_stalled <= stall;
+      if (~was_stalled && stall)
+        stalled_inst <= inst;
+    end
+  end
+
   // ========================================
   // IF/ID Pipeline Register Update
   // ========================================
   
   always @(posedge clk)
   begin
-    if (reset || flush) begin
+    if (reset || flush || flush_d) begin
       IFID_pc <= 32'b0;
       IFID_inst <= 32'h00000013;  // NOP
     end
     else if (~stall) begin
-      IFID_pc <= pc;
-      IFID_inst <= inst;
+      IFID_pc <= IF1_pc;
+      if (reset_nop_pending && ((IF1_pc == RESET_PC) || (IF1_pc == (RESET_PC - 32'd4))))
+        IFID_inst <= 32'h00000013;
+      else
+        IFID_inst <= (was_stalled) ? stalled_inst : inst;
     end
     // else: stall이면 현재 값 유지
   end
@@ -519,11 +568,14 @@ module datapath #(
   // ========================================
 
   // EXMEM stage value that will eventually be written back.
-  // For Load instructions, forward the memory data; otherwise forward ALU output.
+  // Load data is forwarded from MEM2 stage.
   wire [31:0] exmem_fwd_data;
+  wire [31:0] mem2_fwd_data;
   assign exmem_fwd_data = (EXMEM_jal | EXMEM_jalr) ? EXMEM_pc_plus4 :
-                          (EXMEM_MemtoReg) ? MemRData2RF :  // Load instruction: forward memory data
-                          EXMEM_aluout;                     // Other instructions: forward ALU result
+                          EXMEM_aluout;
+  assign mem2_fwd_data = (MEM2_jal | MEM2_jalr) ? MEM2_pc_plus4 :
+                         (MEM2_MemtoReg) ? MemRData2RF :
+                         MEM2_aluout;
 
 
   // Forwarding logic for rs1 and rs2
@@ -533,6 +585,7 @@ module datapath #(
       2'b00: forward_rs1_data = IDEX_rs1_data;
       2'b01: forward_rs1_data = rd_data;  // Forward from WB stage
       2'b10: forward_rs1_data = exmem_fwd_data;  // Forward from MEM stage
+      2'b11: forward_rs1_data = mem2_fwd_data;  // Forward from MEM2 stage
       default: forward_rs1_data = IDEX_rs1_data;
     endcase
   end
@@ -543,6 +596,7 @@ module datapath #(
       2'b00: forward_rs2_data = IDEX_rs2_data;
       2'b01: forward_rs2_data = rd_data;  // Forward from WB stage
       2'b10: forward_rs2_data = exmem_fwd_data;  // Forward from MEM stage
+      2'b11: forward_rs2_data = mem2_fwd_data;  // Forward from MEM2 stage
       default: forward_rs2_data = IDEX_rs2_data;
     endcase
   end
@@ -670,11 +724,25 @@ module datapath #(
   // Load-use hazard detection
   // Check rs1 always, but only check rs2 for S-type and R-type instructions
   // (I-type arithmetic and load instructions use rs2 bits as immediate, not register)
-  wire is_S_type = (IDEX_opcode == 7'b0100011);  // Store
-  wire is_R_type = (IDEX_opcode == 7'b0110011);  // R-type
-  assign stall = (IDEX_MemtoReg && 
-                  ((IDEX_rd == rs1) || ((is_S_type || is_R_type) && (IDEX_rd == rs2))) && 
-                  (IDEX_rd != 5'b0));
+  wire [6:0] id_opcode = IFID_inst[6:0];
+  wire is_S_type = (id_opcode == 7'b0100011);  // Store
+  wire is_R_type = (id_opcode == 7'b0110011);  // R-type
+  wire is_B_type = (id_opcode == 7'b1100011);  // Branch
+  wire load_use_hazard = (IDEX_MemtoReg &&
+                          ((IDEX_rd == rs1) || ((is_S_type || is_R_type || is_B_type) && (IDEX_rd == rs2))) &&
+                          (IDEX_rd != 5'b0));
+  wire stall_req = load_use_hazard | (load_use_hold != 2'b00);
+  always @(posedge clk)
+  begin
+    if (reset || flush)
+      load_use_hold <= 2'b00;
+    else if (load_use_hazard)
+      load_use_hold <= 2'b01;
+    else if (load_use_hold != 2'b00)
+      load_use_hold <= load_use_hold - 1'b1;
+  end
+
+  assign stall = stall_req & ~flush;
 
   // Bottleneck profiling: how often the pipeline stalls/flushed.
   always @(posedge clk)
@@ -702,12 +770,44 @@ module datapath #(
   // ========================================
   
   // Forward A (for rs1)
-  assign forwardA = ((EXMEM_RegWrite) && (EXMEM_rd != 5'b0) && (EXMEM_rd == IDEX_rs1)) ? 2'b10 :
+  assign forwardA = ((EXMEM_RegWrite) && ~EXMEM_MemtoReg && (EXMEM_rd != 5'b0) && (EXMEM_rd == IDEX_rs1)) ? 2'b10 :
+                    ((MEM2_RegWrite) && (MEM2_rd != 5'b0) && (MEM2_rd == IDEX_rs1)) ? 2'b11 :
                     ((MEMWB_RegWrite) && (MEMWB_rd != 5'b0) && (MEMWB_rd == IDEX_rs1)) ? 2'b01 :
                     2'b00;
-  
+
+  // ========================================
+  // MEM2 Pipeline Register
+  // ========================================
+
+  always @(posedge clk)
+  begin
+    if (reset) begin
+      MEM2_pc_plus4 <= 32'b0;
+      MEM2_aluout <= 32'b0;
+      MEM2_rd <= 5'b0;
+      MEM2_funct3 <= 3'b0;
+      // Control signals
+      MEM2_RegWrite <= 1'b0;
+      MEM2_MemtoReg <= 1'b0;
+      MEM2_jal <= 1'b0;
+      MEM2_jalr <= 1'b0;
+    end
+    else begin
+      MEM2_pc_plus4 <= EXMEM_pc_plus4;
+      MEM2_aluout <= EXMEM_aluout;
+      MEM2_rd <= EXMEM_rd;
+      MEM2_funct3 <= EXMEM_funct3;
+      // Control signals
+      MEM2_RegWrite <= EXMEM_RegWrite;
+      MEM2_MemtoReg <= EXMEM_MemtoReg;
+      MEM2_jal <= EXMEM_jal;
+      MEM2_jalr <= EXMEM_jalr;
+    end
+  end
+
   // Forward B (for rs2)
-  assign forwardB = ((EXMEM_RegWrite) && (EXMEM_rd != 5'b0) && (EXMEM_rd == IDEX_rs2)) ? 2'b10 :
+  assign forwardB = ((EXMEM_RegWrite) && ~EXMEM_MemtoReg && (EXMEM_rd != 5'b0) && (EXMEM_rd == IDEX_rs2)) ? 2'b10 :
+                    ((MEM2_RegWrite) && (MEM2_rd != 5'b0) && (MEM2_rd == IDEX_rs2)) ? 2'b11 :
                     ((MEMWB_RegWrite) && (MEMWB_rd != 5'b0) && (MEMWB_rd == IDEX_rs2)) ? 2'b01 :
                     2'b00;
 	
@@ -730,15 +830,15 @@ module datapath #(
       MEMWB_jalr <= 1'b0;
     end
     else begin
-      MEMWB_aluout <= EXMEM_aluout;
+      MEMWB_aluout <= MEM2_aluout;
       MEMWB_MemRData2RF <= MemRData2RF;
-      MEMWB_pc_plus4 <= EXMEM_pc_plus4;
-      MEMWB_rd <= EXMEM_rd;
+      MEMWB_pc_plus4 <= MEM2_pc_plus4;
+      MEMWB_rd <= MEM2_rd;
       // Control signals
-      MEMWB_RegWrite <= EXMEM_RegWrite;
-      MEMWB_MemtoReg <= EXMEM_MemtoReg;
-      MEMWB_jal <= EXMEM_jal;
-      MEMWB_jalr <= EXMEM_jalr;
+      MEMWB_RegWrite <= MEM2_RegWrite;
+      MEMWB_MemtoReg <= MEM2_MemtoReg;
+      MEMWB_jal <= MEM2_jal;
+      MEMWB_jalr <= MEM2_jalr;
     end
   end
   
@@ -759,26 +859,28 @@ module datapath #(
   // ========================================
   
   // Byte Enable to Memory for Load and Store 
-  wire [1:0] Addr_Last2;
+  wire [1:0] exmem_addr_last2;
+  wire [1:0] mem2_addr_last2;
 
-  assign Addr_Last2 = EXMEM_aluout[1:0];
+  assign exmem_addr_last2 = EXMEM_aluout[1:0];
+  assign mem2_addr_last2 = MEM2_aluout[1:0];
 
   always@(*)
   begin
     case(EXMEM_funct3)
 
-		3'b000,  // LB (Load Byte), SB (Store Byte)
-		3'b100:  // LBU (Load Byte Unsigned)
-		         case (Addr_Last2)
+    3'b000,  // LB (Load Byte), SB (Store Byte)
+    3'b100:  // LBU (Load Byte Unsigned)
+             case (exmem_addr_last2)
 			       2'b00:   ByteEnable <= 4'b0001; 
 			       2'b01:   ByteEnable <= 4'b0010;
 			       2'b10:   ByteEnable <= 4'b0100;
 			       2'b11:   ByteEnable <= 4'b1000;
                endcase
 
-		3'b001,  // LH (Load Halfword), SH (Store Halfword)
-		3'b101:  // LHU (Load Halfword Unsigned)
-		         case (Addr_Last2)
+    3'b001,  // LH (Load Halfword), SH (Store Halfword)
+    3'b101:  // LHU (Load Halfword Unsigned)
+             case (exmem_addr_last2)
 			       2'b00:   ByteEnable <= 4'b0011; 
 			       2'b10:   ByteEnable <= 4'b1100;
 			       default: ByteEnable <= 4'b0000;
@@ -795,20 +897,20 @@ module datapath #(
 
 	// LB, LH, LW, LBU, LHU: Data manipulation from Memory
 
-	always@(*)
-	begin
-    case(EXMEM_funct3)
+  always@(*)
+  begin
+    case(MEM2_funct3)
 
-		3'b000:  // LB (Load Byte), sign-extension
-		         case (Addr_Last2)
+    3'b000:  // LB (Load Byte), sign-extension
+             case (mem2_addr_last2)
 			       2'b00: MemRData2RF <= {{24{MemRData[7]}},  MemRData[7:0]}; 
 			       2'b01: MemRData2RF <= {{24{MemRData[15]}}, MemRData[15:8]}; 
 			       2'b10: MemRData2RF <= {{24{MemRData[23]}}, MemRData[23:16]}; 
 			       2'b11: MemRData2RF <= {{24{MemRData[31]}}, MemRData[31:24]};
                endcase
 
-		3'b001:  // LH (Load Halfword), sign-extension
-		         case (Addr_Last2)
+    3'b001:  // LH (Load Halfword), sign-extension
+             case (mem2_addr_last2)
 			       2'b00:    MemRData2RF <= {{16{MemRData[15]}}, MemRData[15:0]}; 
 			       2'b10:    MemRData2RF <= {{16{MemRData[31]}}, MemRData[31:16]}; 
                 default:  MemRData2RF <= {{16{MemRData[15]}}, MemRData[15:0]};
@@ -817,16 +919,16 @@ module datapath #(
 		3'b010:  // LW (Load Word)
 			      MemRData2RF <= MemRData;
 
-		3'b100:  // LBU (Load Byte Unsigned), zero-extension
-		         case (Addr_Last2)
+    3'b100:  // LBU (Load Byte Unsigned), zero-extension
+             case (mem2_addr_last2)
 			       2'b00: MemRData2RF <= {24'b0,MemRData[7:0]}; 
 			       2'b01: MemRData2RF <= {24'b0,MemRData[15:8]}; 
 			       2'b10: MemRData2RF <= {24'b0,MemRData[23:16]}; 
 			       2'b11: MemRData2RF <= {24'b0,MemRData[31:24]};
                endcase
 
-		3'b101:  // LHU (Load Halfword Unsigned), zero-extension
-		         case (Addr_Last2)
+    3'b101:  // LHU (Load Halfword Unsigned), zero-extension
+             case (mem2_addr_last2)
 			       2'b00:    MemRData2RF <= {16'b0,MemRData[15:0]}; 
 			       2'b10:    MemRData2RF <= {16'b0,MemRData[31:16]}; 
                 default:  MemRData2RF <= {16'b0,MemRData[15:0]};

@@ -41,12 +41,12 @@ module data_memory #(
         end
     end
     
-    // Asynchronous read for better timing
-    always @(*) begin
+    // Synchronous read to model BRAM timing
+    always @(posedge clock) begin
         if (enable)
-            read_data = mem[address];
+            read_data <= mem[address];
         else
-            read_data = 32'h00000000;
+            read_data <= 32'h00000000;
     end
 
 endmodule

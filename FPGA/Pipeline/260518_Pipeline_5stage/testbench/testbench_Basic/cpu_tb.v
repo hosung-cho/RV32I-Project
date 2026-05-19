@@ -59,7 +59,9 @@ module cpu_tb();
 
   // instantiate device to be tested
   // reset is active-low at system top (RV32I_System internally inverts it)
-  RV32I_System CPU (
+  RV32I_System #(
+        .CPU_RESET_PC(32'h1000_0000)
+    ) CPU (
         .CLOCK_50  (clk),
         .reset     (rst),
         .imem_addr (imem_addr),

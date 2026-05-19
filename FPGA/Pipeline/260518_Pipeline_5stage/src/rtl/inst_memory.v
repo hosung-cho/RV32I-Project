@@ -294,12 +294,12 @@ module inst_memory #(
         $display("========================================");
     end
 
-    // Asynchronous read for instruction fetch
-    always @(*) begin
+    // Synchronous read for instruction fetch (BRAM-style)
+    always @(posedge clock) begin
         if (enable)
-            instruction = mem[address];
+            instruction <= mem[address];
         else
-            instruction = 32'h00000013;  // NOP when disabled
+            instruction <= 32'h00000013;  // NOP when disabled
     end
 
 endmodule
