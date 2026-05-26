@@ -288,7 +288,7 @@ module datapath(input         clk, reset,
 
   always @(posedge clk, posedge reset)
   begin
-	  if (reset)  pc <= 32'h1000_0000;
+	  if (reset)  pc <= 32'h0000_0000;
 	  else 
 	  begin
 	      if (btaken)     // branch_taken
