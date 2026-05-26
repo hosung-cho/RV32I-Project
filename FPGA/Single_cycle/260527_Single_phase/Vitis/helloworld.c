@@ -66,12 +66,55 @@ enum ResultWord {
 
 enum StatusCode {
 	kStatusStarted = 0x100,
+	kStatusModelOk = 0x110,
+	kStatusResolverOk = 0x120,
+	kStatusInterpreterOk = 0x130,
+	kStatusAllocating = 0x140,
+	kStatusAllocateOk = 0x150,
+	kStatusInputCopied = 0x160,
+	kStatusInvoking = 0x170,
+	kStatusInvokeOk = 0x180,
 	kStatusSchemaMismatch = -1,
 	kStatusAllocateFailed = -2,
 	kStatusInputSizeMismatch = -3,
 	kStatusInvokeFailed = -4,
 	kStatusOk = 1,
 };
+
+static const char* KwsStatusName(int32_t status) {
+	switch (status) {
+	case kStatusStarted:
+		return "started";
+	case kStatusModelOk:
+		return "model ok";
+	case kStatusResolverOk:
+		return "resolver ok";
+	case kStatusInterpreterOk:
+		return "interpreter ok";
+	case kStatusAllocating:
+		return "allocating tensors";
+	case kStatusAllocateOk:
+		return "allocate ok";
+	case kStatusInputCopied:
+		return "input copied";
+	case kStatusInvoking:
+		return "invoking";
+	case kStatusInvokeOk:
+		return "invoke ok";
+	case kStatusSchemaMismatch:
+		return "schema mismatch";
+	case kStatusAllocateFailed:
+		return "allocate failed";
+	case kStatusInputSizeMismatch:
+		return "input size mismatch";
+	case kStatusInvokeFailed:
+		return "invoke failed";
+	case kStatusOk:
+		return "ok";
+	default:
+		return "unknown";
+	}
+}
 
 static void LoadWordsToBram(u32 base, const u32* data, size_t word_count,
 							u32 word_offset) {
@@ -148,9 +191,15 @@ int main(void) {
 
 	xil_printf("Waiting for KWS status...\r\n");
 	int32_t status = 0;
-	const u32 timeout_ms = 5000U;
+	int32_t last_status = -999;
+	const u32 timeout_ms = 60000U;
 	for (u32 i = 0; i < timeout_ms; ++i) {
 		status = ReadMailboxS32(kStatus);
+		if (status != last_status) {
+			xil_printf("KWS status=%d (0x%08lx, %s)\r\n", (int)status,
+					   (unsigned long)(u32)status, KwsStatusName(status));
+			last_status = status;
+		}
 		if (status == kStatusOk || status < 0) {
 			break;
 		}
@@ -161,9 +210,11 @@ int main(void) {
 		xil_printf("KWS status OK\r\n");
 		DumpOutputs();
 	} else if (status < 0) {
-		xil_printf("KWS error status=%d\r\n", (int)status);
+		xil_printf("KWS error status=%d (%s)\r\n", (int)status,
+				   KwsStatusName(status));
 	} else {
-		xil_printf("KWS timeout status=%d\r\n", (int)status);
+		xil_printf("KWS timeout status=%d (%s)\r\n", (int)status,
+				   KwsStatusName(status));
 	}
 
 	cleanup_platform();

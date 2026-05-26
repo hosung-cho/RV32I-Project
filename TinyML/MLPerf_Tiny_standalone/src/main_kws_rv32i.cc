@@ -25,6 +25,14 @@ enum ResultWord {
 
 enum StatusCode {
   kStatusStarted = 0x100,
+  kStatusModelOk = 0x110,
+  kStatusResolverOk = 0x120,
+  kStatusInterpreterOk = 0x130,
+  kStatusAllocating = 0x140,
+  kStatusAllocateOk = 0x150,
+  kStatusInputCopied = 0x160,
+  kStatusInvoking = 0x170,
+  kStatusInvokeOk = 0x180,
   kStatusSchemaMismatch = -1,
   kStatusAllocateFailed = -2,
   kStatusInputSizeMismatch = -3,
@@ -65,6 +73,7 @@ extern "C" int main() {
     result_mailbox[kStatus] = kStatusSchemaMismatch;
     return kStatusSchemaMismatch;
   }
+  result_mailbox[kStatus] = kStatusModelOk;
 
   tflite::MicroMutableOpResolver<6> resolver;
   resolver.AddFullyConnected();
@@ -73,13 +82,17 @@ extern "C" int main() {
   resolver.AddReshape();
   resolver.AddSoftmax();
   resolver.AddAveragePool2D();
+  result_mailbox[kStatus] = kStatusResolverOk;
 
   tflite::MicroInterpreter interpreter(model, resolver, tensor_arena,
                                        kTensorArenaSize);
+  result_mailbox[kStatus] = kStatusInterpreterOk;
+  result_mailbox[kStatus] = kStatusAllocating;
   if (interpreter.AllocateTensors() != kTfLiteOk) {
     result_mailbox[kStatus] = kStatusAllocateFailed;
     return kStatusAllocateFailed;
   }
+  result_mailbox[kStatus] = kStatusAllocateOk;
 
   TfLiteTensor* input = interpreter.input(0);
   if (input->bytes != kKwsInputSize) {
@@ -91,11 +104,14 @@ extern "C" int main() {
   for (int i = 0; i < kKwsInputSize; ++i) {
     input->data.int8[i] = g_kws_inputs[0][i];
   }
+  result_mailbox[kStatus] = kStatusInputCopied;
 
+  result_mailbox[kStatus] = kStatusInvoking;
   if (interpreter.Invoke() != kTfLiteOk) {
     result_mailbox[kStatus] = kStatusInvokeFailed;
     return kStatusInvokeFailed;
   }
+  result_mailbox[kStatus] = kStatusInvokeOk;
 
   const TfLiteTensor* output = interpreter.output(0);
   const int best = ArgMax(output->data.int8, kCategoryCount);
