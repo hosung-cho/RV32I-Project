@@ -129,7 +129,7 @@ riscv32-unknown-elf-objcopy -O verilog --verilog-data-width=4 \
 if riscv32-unknown-elf-objdump -h "${ELF_FILE}" | grep -q "[.]data"; then
   riscv32-unknown-elf-objcopy -O verilog --verilog-data-width=4 \
     --change-addresses -0x20000000 \
-    -j .data "${ELF_FILE}" "${DMEM_HEX_FILE}"
+    -j .rodata -j .data "${ELF_FILE}" "${DMEM_HEX_FILE}"
 else
   {
     echo "@00000000"

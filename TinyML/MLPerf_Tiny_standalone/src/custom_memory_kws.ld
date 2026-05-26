@@ -25,11 +25,6 @@ SECTIONS
         KEEP(*(.text.init))
         *(.text)
         *(.text.*)
-        . = ALIGN(4);
-        *(.rodata)
-        *(.rodata.*)
-        *(.srodata)
-        *(.srodata.*)
     } > IMEM
 
     /* Reserve the first 4 KiB of DMEM for status/result inspection. */
@@ -39,6 +34,18 @@ SECTIONS
         __mailbox_start = .;
         . = . + 0x1000;
         __mailbox_end = .;
+    } > DMEM
+
+    /* The core is Harvard-style: data loads always go to DMEM, so constants
+       and the TFLite flatbuffer model must live in DMEM, not only in IMEM. */
+    .rodata :
+    {
+        . = ALIGN(4);
+        *(.rodata)
+        *(.rodata.*)
+        *(.srodata)
+        *(.srodata.*)
+        . = ALIGN(4);
     } > DMEM
 
     .data :
