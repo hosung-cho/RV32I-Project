@@ -39,6 +39,7 @@ sim_workspace/
 
 # per-arch TFLM sim workspace outputs
 TinyML/MLPerf_Tiny_standalone/build_pc/
+TinyML/MLPerf_Tiny_standalone/build_rv32i/
 Single_cycle/sim_tflm/imem.hex
 Single_cycle/sim_tflm/dmem.hex
 Single_cycle/sim_tflm/sim_tflm_tb
