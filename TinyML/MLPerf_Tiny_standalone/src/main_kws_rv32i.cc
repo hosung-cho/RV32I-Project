@@ -9,7 +9,7 @@
 
 namespace {
 
-constexpr int kTensorArenaSize = 200 * 1024;
+constexpr int kTensorArenaSize = 180 * 1024;
 alignas(16) uint8_t tensor_arena[kTensorArenaSize];
 
 constexpr uintptr_t kResultBase = 0x20000000u;
@@ -60,6 +60,8 @@ extern "C" int main() {
 
   const tflite::Model* model = tflite::GetModel(g_kws_model_data);
   if (model->version() != TFLITE_SCHEMA_VERSION) {
+    result_mailbox[kPredictedIndex] = model->version();
+    result_mailbox[kPredictedRawScore] = TFLITE_SCHEMA_VERSION;
     result_mailbox[kStatus] = kStatusSchemaMismatch;
     return kStatusSchemaMismatch;
   }
