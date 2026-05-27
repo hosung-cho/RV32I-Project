@@ -283,10 +283,10 @@ module datapath(input         clk, reset,
   assign btaken     =  beq_taken  | bne_taken | blt_taken | 
 			              bge_taken | bltu_taken | bgeu_taken;
 
-  assign branch_dest = (pc + se_br_imm);
-  assign jal_dest    = (pc + se_jal_imm);
+  assign branch_dest = (inst_pc + se_br_imm);
+  assign jal_dest    = (inst_pc + se_jal_imm);
   assign jalr_dest_tmp = {aluout[31:1],1'b0}; // Set LSB to 0 according to RISC-V datasheet
-  assign jalr_dest   = jalr_dest_tmp + 32'd4;
+  assign jalr_dest   = jalr_dest_tmp;
 
 
   always @(posedge clk, posedge reset)

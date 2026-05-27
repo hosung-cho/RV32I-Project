@@ -149,7 +149,7 @@ ILA에서는 `inst`가 `0x3d2c`의 `jal`일 때 `fetch_addr`/`pc`가 이미 `0x3
 
 - JAL/JALR link 값이 `pc + 4`가 되어 한 instruction 더 앞선 값이 저장된다.
 - AUIPC가 현재 instruction PC가 아니라 다음 fetch PC를 기준으로 계산된다.
-- JALR target update도 다음 fetch 주소 관점에서 4 byte 보정이 필요하다.
+- Branch/JAL/JALR target도 현재 실행 instruction 주소인 `inst_pc` 기준으로 계산해야 한다.
 
 ## Linker와 stack 관련 확인
 
@@ -230,42 +230,34 @@ if (jal | jalr) rd_data[31:0] = pc;
 - RISC-V link 값은 현재 instruction PC + 4이다.
 - 현재 모델에서 `pc = inst_pc + 4`이므로 link 값은 `pc` 자체가 맞다.
 
-### 4. `rv32i_cpu.v`: JALR target 보정
+### 4. `rv32i_cpu.v`: Branch/JAL/JALR target 보정
 
 기존:
 
 ```verilog
+assign branch_dest = pc + se_br_imm;
+assign jal_dest    = pc + se_jal_imm;
 assign jalr_dest = {aluout[31:1],1'b0};
 ```
 
 수정:
 
 ```verilog
+assign branch_dest = inst_pc + se_br_imm;
+assign jal_dest    = inst_pc + se_jal_imm;
 assign jalr_dest_tmp = {aluout[31:1],1'b0};
-assign jalr_dest     = jalr_dest_tmp + 32'd4;
-```
-
-이유:
-
-- JALR target 자체는 `rs1 + imm`의 LSB clear 값이다.
-- 하지만 이 datapath의 `pc` 레지스터가 다음 fetch 주소로 해석되므로, 다음 cycle fetch 주소에는 target instruction의 다음 주소 관점 보정이 필요하다.
-
-### 5. Branch/JAL target은 유지
-
-다음 계산은 유지했다.
-
-```verilog
-assign branch_dest = pc + se_br_imm;
-assign jal_dest    = pc + se_jal_imm;
+assign jalr_dest     = jalr_dest_tmp;
 ```
 
 이유:
 
 - RISC-V branch/JAL target은 `inst_pc + imm`이다.
-- 하지만 current `pc = inst_pc + 4`이고 immediate generator가 branch/jal offset 형태와 결합되어 기존 설계에서 다음 fetch 주소 관점으로 맞물려 있었다.
-- ILA 관점에서 문제로 확인된 것은 link/AUIPC/JALR 정렬이었다.
+- JALR target은 `rs1 + imm`의 LSB clear 값이다.
+- `pc`는 link 값으로는 맞지만 target base로 쓰면 target이 4 byte 밀린다.
+- `iladata_ver2.vcd`에서 `jal 0x3c0c <main>` 이후 `0x3c0c`가 아니라 `0x3c10`으로 진입해 `main` 첫 명령 `addi sp,sp,-480`을 건너뛰는 현상을 확인했다.
+- 그 결과 `sp`가 줄어들지 않아 `main` prologue store가 `0x200401d8` 같은 DMEM 범위 밖 주소로 나갔다.
 
-### 6. `RV32I_System.v`: DMEM 범위 guard 추가
+### 5. `RV32I_System.v`: DMEM 범위 guard 추가
 
 추가:
 
@@ -313,6 +305,52 @@ Warning:
 basic_modules.v:60: warning: @* is sensitive to all 32 words in array 'mem'.
 basic_modules.v:61: warning: @* is sensitive to all 32 words in array 'mem'.
 ```
+
+## ILA ver2 추가 분석
+
+분석 대상:
+
+- `z_etc/iladata_ver2.vcd`
+
+Vitis log 변화:
+
+```text
+KWS status=272 (0x00000110, model ok)
+KWS timeout status=272 (model ok)
+KWS debug pred=3 raw=0x00000000
+```
+
+이전 문제였던 `0x00003D34` status 오염은 사라졌다. Mailbox write는 정상 상태값만 보였다.
+
+```text
+t=513 data_addr=0x20000000 write_data=0x00000100
+t=519 data_addr=0x20000000 write_data=0x00000101
+t=521 data_addr=0x20000000 write_data=0x00000102
+t=535 data_addr=0x20000000 write_data=0x00000104
+t=550 data_addr=0x20000000 write_data=0x00000108
+t=566 data_addr=0x20000000 write_data=0x0000010c
+t=569 data_addr=0x20000000 write_data=0x00000110
+```
+
+하지만 `main` 진입 직후 다음 invalid store들이 보였다.
+
+```text
+t=504 pc=0x00003c10 inst=0x1c812c23 data_addr=0x200401d8 data_we=1 dmem_addr_valid=0
+t=506 pc=0x00003c18 inst=0x1c912a23 data_addr=0x200401d4 data_we=1 dmem_addr_valid=0
+t=510 pc=0x00003c28 inst=0x1c112e23 data_addr=0x200401dc data_we=1 dmem_addr_valid=0
+```
+
+ASM상 `main`의 첫 명령은 다음과 같다.
+
+```asm
+00003c0c <main>:
+    3c0c: e2010113  addi sp,sp,-480
+    3c10: 1c812c23  sw   s0,472(sp)
+```
+
+VCD에서는 `jal 3c0c <main>` 이후 `pc=0x3c10`부터 실행되어 `0x3c0c`의 stack frame allocation이 건너뛰어진 형태였다. 이로 인해 `sp`가 여전히 `_stack_top=0x20040000` 근처에 남아 있었고, prologue store가 `0x20040000` 밖으로 나갔다.
+
+따라서 `branch_dest`, `jal_dest`, `jalr_dest`를 모두 실제 target 주소 기준으로 다시 수정했다.
 
 ## 다음 FPGA 확인 포인트
 
