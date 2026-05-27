@@ -32,6 +32,7 @@ module RV32I_System(
   (* mark_debug = "true" *) wire [31:0] read_data;
   (* mark_debug = "true" *) wire [3:0]  ByteEnable;
   (* mark_debug = "true" *) wire        data_we;
+  (* mark_debug = "true" *) wire        dmem_addr_valid;
   (* mark_debug = "true" *) wire        is_halted = (inst == 32'h0000006f);
 
   // CPU instantiation
@@ -62,11 +63,12 @@ module RV32I_System(
   assign dmem_wdata = write_data;
   assign read_data  = dmem_rdata;
   assign dmem_en    = 1'b1; // Single-cycle에서는 항상 활성화 상태 유지
+  assign dmem_addr_valid = (data_addr[31:18] == 14'h0800);
 
   // ⚠️ [매우 중요한 수정 포인트: Write Enable 필터링]
   // rv32i_cpu.v 내부를 보면 LW, LH 같은 'Load' 명령어일 때도 ByteEnable 신호가 켜집니다.
   // 이 ByteEnable을 BRAM의 dmem_we에 그대로 연결하면, 읽어야 할 타이밍에 메모리를 덮어쓰는(Data Corruption) 대참사가 발생합니다.
   // 따라서, 반드시 MemWrite(data_we)가 1일 때만 ByteEnable이 나가도록 마스킹(Gating) 처리해야 합니다.
-  assign dmem_we    = data_we ? ByteEnable : 4'b0000;
+  assign dmem_we    = (data_we && dmem_addr_valid) ? ByteEnable : 4'b0000;
 
 endmodule

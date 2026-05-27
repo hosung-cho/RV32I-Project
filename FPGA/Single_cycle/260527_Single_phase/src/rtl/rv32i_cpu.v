@@ -243,6 +243,7 @@ module datapath(input         clk, reset,
   wire [31:0] se_imm_itype;
   wire [31:0] se_imm_stype;
   wire [31:0] auipc_lui_imm;
+  wire [31:0] inst_pc;
   reg  [31:0] alusrc1;
   reg  [31:0] alusrc2;
   reg  [31:0] MemRData2RF;
@@ -261,6 +262,7 @@ module datapath(input         clk, reset,
   assign rs2 = inst[24:20];
   assign rd  = inst[11:7];
   assign funct3  = inst[14:12];
+  assign inst_pc = pc - 32'd4;
 
   //
   // PC (Program Counter) logic 
@@ -283,7 +285,8 @@ module datapath(input         clk, reset,
 
   assign branch_dest = (pc + se_br_imm);
   assign jal_dest    = (pc + se_jal_imm);
-  assign jalr_dest   = {aluout[31:1],1'b0}; // Set LSB to 0 according to RISC-V datasheet
+  assign jalr_dest_tmp = {aluout[31:1],1'b0}; // Set LSB to 0 according to RISC-V datasheet
+  assign jalr_dest   = jalr_dest_tmp + 32'd4;
 
 
   always @(posedge clk, posedge reset)
@@ -349,7 +352,7 @@ module datapath(input         clk, reset,
 	// 1st source to ALU (alusrc1)
 	always@(*)
 	begin
-		if      (auipc)	alusrc1[31:0]  =  pc;
+		if      (auipc)	alusrc1[31:0]  =  inst_pc;
 		else if (lui) 		alusrc1[31:0]  =  32'b0;
 		else          		alusrc1[31:0]  =  rs1_data[31:0];
 	end
@@ -371,7 +374,7 @@ module datapath(input         clk, reset,
 	// Data selection for writing to RF
 	always@(*)
 	begin
-		if	     (jal | jalr)	rd_data[31:0] = pc + 4;
+		if	     (jal | jalr)	rd_data[31:0] = pc;
 		else if (MemtoReg)	rd_data[31:0] = MemRData2RF;
 		else						rd_data[31:0] = aluout;
 	end
