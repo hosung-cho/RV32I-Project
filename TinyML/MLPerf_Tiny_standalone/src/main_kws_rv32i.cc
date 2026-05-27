@@ -25,6 +25,11 @@ enum ResultWord {
 
 enum StatusCode {
   kStatusStarted = 0x100,
+  kStatusClearingOutputs = 0x101,
+  kStatusBeforeModelRead = 0x102,
+  kStatusModelBytesRead = 0x104,
+  kStatusGetModelOk = 0x108,
+  kStatusVersionRead = 0x10c,
   kStatusModelOk = 0x110,
   kStatusResolverOk = 0x120,
   kStatusInterpreterOk = 0x130,
@@ -62,13 +67,33 @@ extern "C" int main() {
   result_mailbox[kStatus] = kStatusStarted;
   result_mailbox[kPredictedIndex] = -1;
   result_mailbox[kPredictedRawScore] = 0;
+  result_mailbox[kStatus] = kStatusClearingOutputs;
+#if 0
   for (int i = 0; i < kCategoryCount; ++i) {
     result_mailbox[kOutputBase + i] = 0;
   }
+#endif
+
+  result_mailbox[kStatus] = kStatusBeforeModelRead;
+
+  const volatile uint32_t* model_words =
+      reinterpret_cast<const volatile uint32_t*>(g_kws_model_data);
+  const uint32_t model_first_word = model_words[0];
+  result_mailbox[kPredictedRawScore] = static_cast<int32_t>(model_first_word);
+  result_mailbox[kStatus] = kStatusModelBytesRead;
 
   const tflite::Model* model = tflite::GetModel(g_kws_model_data);
-  if (model->version() != TFLITE_SCHEMA_VERSION) {
-    result_mailbox[kPredictedIndex] = model->version();
+  result_mailbox[kPredictedIndex] =
+      static_cast<int32_t>(reinterpret_cast<uintptr_t>(model));
+  result_mailbox[kStatus] = kStatusGetModelOk;
+
+  const int32_t model_version = model->version();
+  result_mailbox[kPredictedIndex] = model_version;
+  result_mailbox[kPredictedRawScore] = TFLITE_SCHEMA_VERSION;
+  result_mailbox[kStatus] = kStatusVersionRead;
+
+  if (model_version != TFLITE_SCHEMA_VERSION) {
+    result_mailbox[kPredictedIndex] = model_version;
     result_mailbox[kPredictedRawScore] = TFLITE_SCHEMA_VERSION;
     result_mailbox[kStatus] = kStatusSchemaMismatch;
     return kStatusSchemaMismatch;
