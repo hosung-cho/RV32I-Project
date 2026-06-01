@@ -8,6 +8,7 @@
 #include "xil_printf.h"
 #include "xparameters.h"
 #include "xil_types.h"
+#include "xtime_l.h"
 #include "sleep.h"
 
 #ifndef INST_BRAM_BASE
@@ -45,6 +46,22 @@
 
 #ifndef RUN_BRAM_ADDR_DIAG
 #define RUN_BRAM_ADDR_DIAG 0
+#endif
+
+#ifndef RV32I_CORE_HZ
+#define RV32I_CORE_HZ 30000000ULL
+#endif
+
+#ifndef KWS_TIMEOUT_US
+#define KWS_TIMEOUT_US 60000000ULL
+#endif
+
+#ifndef KWS_POLL_SLEEP_US
+#define KWS_POLL_SLEEP_US 0U
+#endif
+
+#ifndef KWS_PROGRESS_LOG
+#define KWS_PROGRESS_LOG 0
 #endif
 
 #define KWS_CATEGORY_COUNT 12
@@ -9023,6 +9040,41 @@ static void WriteDmemOffset(u32 byte_offset, u32 value) {
 	Xil_Out32(DATA_BRAM_BASE + byte_offset, value);
 }
 
+static XTime GetTimeTicks(void) {
+	XTime now;
+	XTime_GetTime(&now);
+	return now;
+}
+
+static u32 TicksToUs(XTime ticks) {
+	const u64 us =
+		((u64)ticks * 1000000ULL + (COUNTS_PER_SECOND / 2ULL)) /
+		COUNTS_PER_SECOND;
+	return (u32)us;
+}
+
+static u32 UsToRv32iCycles(u32 us) {
+	const u64 cycles =
+		((u64)us * RV32I_CORE_HZ + 500000ULL) / 1000000ULL;
+	return (u32)cycles;
+}
+
+static void PrintElapsedTime(const char* label, XTime start, XTime end) {
+	const u32 elapsed_us = TicksToUs(end - start);
+	const u32 elapsed_ms = elapsed_us / 1000U;
+	const u32 frac_us = elapsed_us % 1000U;
+
+	xil_printf("%s: %lu.%03lu ms (%lu us)\r\n", label,
+			   (unsigned long)elapsed_ms, (unsigned long)frac_us,
+			   (unsigned long)elapsed_us);
+
+#if RV32I_CORE_HZ > 0
+	xil_printf("%s: approx %lu RV32I cycles @ %lu Hz\r\n", label,
+			   (unsigned long)UsToRv32iCycles(elapsed_us),
+			   (unsigned long)RV32I_CORE_HZ);
+#endif
+}
+
 static void RunBramAddressDiagnostic(void) {
 	static const u32 offsets_to_clear[] = {
 		0x0000U, 0x0004U, 0x0008U, 0x0010U, 0x0040U,
@@ -9124,25 +9176,60 @@ int main(void) {
 
 	FlushBramWrites();
 	xil_printf("Memory load complete. Releasing RV32I reset.\r\n");
+
+	const XTime run_start_ticks = GetTimeTicks();
 	SetRv32iReset(0);
-	usleep(1000);
 
 	xil_printf("Waiting for KWS status...\r\n");
 	int32_t status = 0;
 	int32_t last_status = -999;
-	const u32 timeout_ms = 60000U;
-	for (u32 i = 0; i < timeout_ms; ++i) {
+	XTime status_ticks = run_start_ticks;
+	XTime invoke_start_ticks = 0;
+	XTime invoke_end_ticks = 0;
+	int saw_invoke_start = 0;
+	int saw_invoke_end = 0;
+	for (;;) {
 		status = ReadMailboxS32(kStatus);
+		status_ticks = GetTimeTicks();
 		if (status != last_status) {
+#if KWS_PROGRESS_LOG
 			xil_printf("KWS status=%d (0x%08lx, %s)\r\n", (int)status,
 					   (unsigned long)(u32)status, KwsStatusName(status));
+#endif
 			last_status = status;
+		}
+		if (!saw_invoke_start && status == kStatusInvoking) {
+			invoke_start_ticks = status_ticks;
+			saw_invoke_start = 1;
+		}
+		if (saw_invoke_start && !saw_invoke_end &&
+			(status == kStatusInvokeOk || status == kStatusOk ||
+			 status == kStatusInvokeFailed)) {
+			invoke_end_ticks = status_ticks;
+			saw_invoke_end = 1;
 		}
 		if (status == kStatusOk || status < 0) {
 			break;
 		}
-		usleep(1000);
+		if (TicksToUs(status_ticks - run_start_ticks) >= KWS_TIMEOUT_US) {
+			break;
+		}
+#if KWS_POLL_SLEEP_US > 0
+		usleep(KWS_POLL_SLEEP_US);
+#endif
 	}
+
+	PrintElapsedTime("KWS total reset-release-to-status", run_start_ticks,
+					 status_ticks);
+	if (saw_invoke_start && saw_invoke_end) {
+		PrintElapsedTime("KWS invoke-only", invoke_start_ticks,
+						 invoke_end_ticks);
+	} else {
+		xil_printf("KWS invoke-only: unavailable (start_seen=%d end_seen=%d)\r\n",
+				   saw_invoke_start, saw_invoke_end);
+	}
+	xil_printf("KWS final status=%d (0x%08lx, %s)\r\n", (int)status,
+			   (unsigned long)(u32)status, KwsStatusName(status));
 
 	if (status == kStatusOk) {
 		xil_printf("KWS status OK\r\n");
