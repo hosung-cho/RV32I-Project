@@ -394,7 +394,7 @@ module datapath #(
   begin
      if (reset)
        pc <= RESET_PC;
-     else if (~stall)
+     else if (flush || ~stall)
        pc <= next_pc;
   end
 
@@ -668,12 +668,14 @@ module datapath #(
   // ========================================
   
   // Load-use hazard detection
-  // Check rs1 always, but only check rs2 for S-type and R-type instructions
-  // (I-type arithmetic and load instructions use rs2 bits as immediate, not register)
+  // Check rs1 always, but only check rs2 for instructions that actually read it.
+  // I-type arithmetic, loads, JALR, LUI, AUIPC, and JAL use bits [24:20] as
+  // immediate/encoding fields, not as rs2.
   wire is_S_type = (IDEX_opcode == 7'b0100011);  // Store
   wire is_R_type = (IDEX_opcode == 7'b0110011);  // R-type
+  wire is_B_type = (IDEX_opcode == 7'b1100011);  // Branch
   assign stall = (IDEX_MemtoReg && 
-                  ((IDEX_rd == rs1) || ((is_S_type || is_R_type) && (IDEX_rd == rs2))) && 
+                  ((IDEX_rd == rs1) || ((is_S_type || is_R_type || is_B_type) && (IDEX_rd == rs2))) && 
                   (IDEX_rd != 5'b0));
 
   // Bottleneck profiling: how often the pipeline stalls/flushed.
