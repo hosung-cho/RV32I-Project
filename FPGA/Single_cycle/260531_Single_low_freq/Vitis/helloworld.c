@@ -8,7 +8,7 @@
 #include "xil_printf.h"
 #include "xparameters.h"
 #include "xil_types.h"
-#include "xtime_l.h"
+#include "xiltimer.h"
 #include "sleep.h"
 
 #ifndef INST_BRAM_BASE
