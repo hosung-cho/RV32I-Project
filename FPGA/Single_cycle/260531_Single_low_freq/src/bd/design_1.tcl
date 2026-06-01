@@ -749,30 +749,30 @@ Port;FD4A0000;FD4AFFFF;1|FPD;DPDMA;FD4C0000;FD4CFFFF;1|FPD;DDR_XMPU5_CFG;FD05000
   # Create instance: clk_wiz_0, and set properties
   set clk_wiz_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:clk_wiz:6.0 clk_wiz_0 ]
   set_property -dict [list \
-    CONFIG.CLKOUT1_JITTER {132.683} \
-    CONFIG.CLKOUT1_PHASE_ERROR {87.180} \
-    CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {50} \
-    CONFIG.CLKOUT2_JITTER {132.683} \
-    CONFIG.CLKOUT2_PHASE_ERROR {87.180} \
-    CONFIG.CLKOUT2_REQUESTED_OUT_FREQ {50} \
-    CONFIG.CLKOUT2_REQUESTED_PHASE {90} \
+    CONFIG.CLKOUT1_JITTER {243.743} \
+    CONFIG.CLKOUT1_PHASE_ERROR {302.484} \
+    CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {30} \
+    CONFIG.CLKOUT2_JITTER {207.014} \
+    CONFIG.CLKOUT2_PHASE_ERROR {302.484} \
+    CONFIG.CLKOUT2_REQUESTED_OUT_FREQ {90} \
+    CONFIG.CLKOUT2_REQUESTED_PHASE {0} \
     CONFIG.CLKOUT2_USED {true} \
     CONFIG.CLKOUT3_JITTER {132.683} \
     CONFIG.CLKOUT3_PHASE_ERROR {87.180} \
     CONFIG.CLKOUT3_REQUESTED_OUT_FREQ {50} \
     CONFIG.CLKOUT3_REQUESTED_PHASE {270} \
-    CONFIG.CLKOUT3_USED {true} \
+    CONFIG.CLKOUT3_USED {false} \
     CONFIG.CLK_OUT1_PORT {clk_cpu} \
-    CONFIG.CLK_OUT2_PORT {clk_imem} \
+    CONFIG.CLK_OUT2_PORT {clk_bram} \
     CONFIG.CLK_OUT3_PORT {clk_dmem} \
-    CONFIG.MMCM_CLKFBOUT_MULT_F {12.000} \
-    CONFIG.MMCM_CLKOUT0_DIVIDE_F {24.000} \
-    CONFIG.MMCM_CLKOUT1_DIVIDE {24} \
-    CONFIG.MMCM_CLKOUT1_PHASE {90.000} \
-    CONFIG.MMCM_CLKOUT2_DIVIDE {24} \
+    CONFIG.MMCM_CLKFBOUT_MULT_F {58.500} \
+    CONFIG.MMCM_CLKOUT0_DIVIDE_F {39.000} \
+    CONFIG.MMCM_CLKOUT1_DIVIDE {13} \
+    CONFIG.MMCM_CLKOUT1_PHASE {0.000} \
+    CONFIG.MMCM_CLKOUT2_DIVIDE {1} \
     CONFIG.MMCM_CLKOUT2_PHASE {270.000} \
-    CONFIG.MMCM_DIVCLK_DIVIDE {1} \
-    CONFIG.NUM_OUT_CLKS {3} \
+    CONFIG.MMCM_DIVCLK_DIVIDE {5} \
+    CONFIG.NUM_OUT_CLKS {2} \
     CONFIG.PRIM_SOURCE {Global_buffer} \
     CONFIG.RESET_PORT {resetn} \
     CONFIG.RESET_TYPE {ACTIVE_LOW} \
@@ -825,9 +825,8 @@ Port;FD4A0000;FD4AFFFF;1|FPD;DPDMA;FD4C0000;FD4CFFFF;1|FPD;DDR_XMPU5_CFG;FD05000
   [get_bd_pins RV32I_System_0/dmem_rdata]
   connect_bd_net -net clk_wiz_0_clk_50  [get_bd_pins clk_wiz_0/clk_cpu] \
   [get_bd_pins RV32I_System_0/CLOCK_50]
-  connect_bd_net -net clk_wiz_0_clk_dmem  [get_bd_pins clk_wiz_0/clk_dmem] \
-  [get_bd_pins blk_mem_gen_1/clkb]
-  connect_bd_net -net clk_wiz_0_clk_imem  [get_bd_pins clk_wiz_0/clk_imem] \
+  connect_bd_net -net clk_wiz_0_clk_bram  [get_bd_pins clk_wiz_0/clk_bram] \
+  [get_bd_pins blk_mem_gen_1/clkb] \
   [get_bd_pins blk_mem_gen_0/clkb]
   connect_bd_net -net rst_ps8_0_100M_peripheral_aresetn  [get_bd_pins rst_ps8_0_100M/peripheral_aresetn] \
   [get_bd_pins axi_bram_ctrl_0/s_axi_aresetn] \
