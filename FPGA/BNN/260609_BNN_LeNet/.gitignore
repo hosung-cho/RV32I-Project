@@ -1,0 +1,7 @@
+build_pc/
+build_rv32i/
+.venv/
+__pycache__/
+PC/train/__pycache__/
+PC/train/data/
+PC/train/*.pt
