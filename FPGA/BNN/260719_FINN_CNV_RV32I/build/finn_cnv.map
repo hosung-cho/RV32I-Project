@@ -1,0 +1,193 @@
+Archive member included to satisfy reference by file (symbol)
+
+/opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(muldi3.o)
+                              /tmp/ccETBLyB.o (__mulsi3)
+
+Discarded input sections
+
+ .text          0x00000000        0x0 /tmp/ccc65G1E.o
+ .data          0x00000000        0x0 /tmp/ccc65G1E.o
+ .bss           0x00000000        0x0 /tmp/ccc65G1E.o
+ .riscv.attributes
+                0x00000000       0x1a /tmp/ccc65G1E.o
+ .text          0x00000000        0x0 /tmp/ccETBLyB.o
+ .data          0x00000000        0x0 /tmp/ccETBLyB.o
+ .bss           0x00000000        0x0 /tmp/ccETBLyB.o
+ .srodata.result_mailbox
+                0x00000000        0x4 /tmp/ccETBLyB.o
+ .comment       0x00000000       0x10 /tmp/ccETBLyB.o
+ .note.GNU-stack
+                0x00000000        0x0 /tmp/ccETBLyB.o
+ .riscv.attributes
+                0x00000000       0x1c /tmp/ccETBLyB.o
+ .data          0x00000000        0x0 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(muldi3.o)
+ .bss           0x00000000        0x0 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(muldi3.o)
+ .riscv.attributes
+                0x00000000       0x1a /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(muldi3.o)
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+IMEM             0x00000000         0x00020000         xr
+DMEM             0x20000000         0x00080000         xrw
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+LOAD /tmp/ccc65G1E.o
+LOAD /tmp/ccETBLyB.o
+LOAD /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a
+
+.text           0x00000000      0xe14
+                0x00000000                        . = ALIGN (0x4)
+ *(.text.init)
+ .text.init     0x00000000       0x30 /tmp/ccc65G1E.o
+                0x00000000                _start
+ *(.text)
+ .text          0x00000030       0x24 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(muldi3.o)
+                0x00000030                __mulsi3
+ *(.text.*)
+ .text.xnor_word
+                0x00000054       0x60 /tmp/ccETBLyB.o
+ .text.binary_conv3x3
+                0x000000b4      0x2dc /tmp/ccETBLyB.o
+ .text.maxpool2x2
+                0x00000390      0x168 /tmp/ccETBLyB.o
+ .text.binary_fc.constprop.0
+                0x000004f8      0x134 /tmp/ccETBLyB.o
+ .text.conv1_q7.constprop.0
+                0x0000062c      0x19c /tmp/ccETBLyB.o
+ .text.finn_cnv_inference
+                0x000007c8      0x584 /tmp/ccETBLyB.o
+ .text.startup.main
+                0x00000d4c       0xc8 /tmp/ccETBLyB.o
+                0x00000d4c                main
+
+.mailbox        0x20000000     0x1000
+                0x20000000                        . = ALIGN (0x4)
+                0x20001000                        . = (. + 0x1000)
+ *fill*         0x20000000     0x1000 
+
+.rodata         0x20001000    0x31358
+                0x20001000                        . = ALIGN (0x4)
+ *(.rodata)
+ *(.rodata.*)
+ .rodata.cnv_expected_layer_checksums
+                0x20001000       0x28 /tmp/ccETBLyB.o
+ .rodata.cnv_fc_w2
+                0x20001028      0x280 /tmp/ccETBLyB.o
+ .rodata.cnv_fc_polarity1
+                0x200012a8       0x40 /tmp/ccETBLyB.o
+ .rodata.cnv_fc_threshold1
+                0x200012e8      0x400 /tmp/ccETBLyB.o
+ .rodata.cnv_fc_w1
+                0x200016e8     0x8000 /tmp/ccETBLyB.o
+ .rodata.cnv_fc_polarity0
+                0x200096e8       0x40 /tmp/ccETBLyB.o
+ .rodata.cnv_fc_threshold0
+                0x20009728      0x400 /tmp/ccETBLyB.o
+ .rodata.cnv_fc_w0
+                0x20009b28     0x4000 /tmp/ccETBLyB.o
+ .rodata.cnv_polarity5
+                0x2000db28       0x20 /tmp/ccETBLyB.o
+ .rodata.cnv_threshold5
+                0x2000db48      0x200 /tmp/ccETBLyB.o
+ .rodata.cnv_w5
+                0x2000dd48    0x12000 /tmp/ccETBLyB.o
+ .rodata.cnv_polarity4
+                0x2001fd48       0x20 /tmp/ccETBLyB.o
+ .rodata.cnv_threshold4
+                0x2001fd68      0x200 /tmp/ccETBLyB.o
+ .rodata.cnv_w4
+                0x2001ff68     0x9000 /tmp/ccETBLyB.o
+ .rodata.cnv_polarity3
+                0x20028f68       0x10 /tmp/ccETBLyB.o
+ .rodata.cnv_threshold3
+                0x20028f78      0x100 /tmp/ccETBLyB.o
+ .rodata.cnv_w3
+                0x20029078     0x4800 /tmp/ccETBLyB.o
+ .rodata.cnv_polarity2
+                0x2002d878       0x10 /tmp/ccETBLyB.o
+ .rodata.cnv_threshold2
+                0x2002d888      0x100 /tmp/ccETBLyB.o
+ .rodata.cnv_w2
+                0x2002d988     0x2400 /tmp/ccETBLyB.o
+ .rodata.cnv_threshold1
+                0x2002fd88       0x80 /tmp/ccETBLyB.o
+ .rodata.cnv_w1
+                0x2002fe08     0x1200 /tmp/ccETBLyB.o
+ .rodata.cnv_threshold0
+                0x20031008       0x80 /tmp/ccETBLyB.o
+ .rodata.cnv_w0_i8
+                0x20031088      0x6c0 /tmp/ccETBLyB.o
+ .rodata.cnv_input_q7_hwc
+                0x20031748      0xc00 /tmp/ccETBLyB.o
+ *(.srodata)
+ *(.srodata.*)
+ .srodata.cnv_polarity1
+                0x20032348        0x8 /tmp/ccETBLyB.o
+ .srodata.cnv_polarity0
+                0x20032350        0x8 /tmp/ccETBLyB.o
+                0x20032358                        . = ALIGN (0x4)
+
+.rela.dyn       0x20032358        0x0
+ .rela.text.init
+                0x20032358        0x0 /tmp/ccc65G1E.o
+
+.data           0x20032358        0x0
+                0x20032358                        . = ALIGN (0x4)
+                0x20032358                        __data_start = .
+ *(.sdata)
+ *(.sdata.*)
+ *(.data)
+ *(.data.*)
+                0x20032358                        . = ALIGN (0x4)
+                0x20032358                        __data_end = .
+
+.bss            0x20032358     0x3848
+                0x20032360                        . = ALIGN (0x10)
+ *fill*         0x20032358        0x8 
+                0x20032360                        __bss_start = .
+ *(.sbss)
+ *(.sbss.*)
+ *(.bss)
+ *(.bss.*)
+ .bss.buffer_b  0x20032360     0x1c20 /tmp/ccETBLyB.o
+ .bss.buffer_a  0x20033f80     0x1c20 /tmp/ccETBLyB.o
+ *(COMMON)
+                0x20035ba0                        . = ALIGN (0x10)
+                0x20035ba0                        __bss_end = .
+                [!provide]                        PROVIDE (__global_pointer$ = (__data_start + 0x800))
+                0x20080000                        PROVIDE (_stack_top = (ORIGIN (DMEM) + LENGTH (DMEM)))
+
+/DISCARD/
+ *(.comment)
+ *(.note*)
+ *(.gnu*)
+ *(.riscv.attributes)
+ *(.eh_frame)
+ *(.eh_frame.*)
+ *(.init_array*)
+ *(.fini_array*)
+OUTPUT(/home/hosung/Ho/SoCLab workspace/RV32I-Project/FPGA/BNN/260719_FINN_CNV_RV32I/build/finn_cnv.elf elf32-littleriscv)
+
+.debug_line     0x00000000       0x7a
+ .debug_line    0x00000000       0x7a /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(muldi3.o)
+
+.debug_line_str
+                0x00000000       0x91
+ .debug_line_str
+                0x00000000       0x91 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(muldi3.o)
+
+.debug_info     0x00000000       0x31
+ .debug_info    0x00000000       0x31 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(muldi3.o)
+
+.debug_abbrev   0x00000000       0x28
+ .debug_abbrev  0x00000000       0x28 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(muldi3.o)
+
+.debug_aranges  0x00000000       0x20
+ .debug_aranges
+                0x00000000       0x20 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(muldi3.o)
+
+.debug_str      0x00000000       0xa6
+ .debug_str     0x00000000       0xa6 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(muldi3.o)

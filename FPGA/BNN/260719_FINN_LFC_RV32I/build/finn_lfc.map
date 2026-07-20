@@ -1,0 +1,122 @@
+
+Discarded input sections
+
+ .text          0x00000000        0x0 /tmp/ccPhoouK.o
+ .data          0x00000000        0x0 /tmp/ccPhoouK.o
+ .bss           0x00000000        0x0 /tmp/ccPhoouK.o
+ .riscv.attributes
+                0x00000000       0x1a /tmp/ccPhoouK.o
+ .text          0x00000000        0x0 /tmp/cca396Yy.o
+ .data          0x00000000        0x0 /tmp/cca396Yy.o
+ .bss           0x00000000        0x0 /tmp/cca396Yy.o
+ .srodata.result_mailbox
+                0x00000000        0x4 /tmp/cca396Yy.o
+ .comment       0x00000000       0x10 /tmp/cca396Yy.o
+ .note.GNU-stack
+                0x00000000        0x0 /tmp/cca396Yy.o
+ .riscv.attributes
+                0x00000000       0x1c /tmp/cca396Yy.o
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+IMEM             0x00000000         0x00020000         xr
+DMEM             0x20000000         0x000c0000         xrw
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+LOAD /tmp/ccPhoouK.o
+LOAD /tmp/cca396Yy.o
+LOAD /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a
+
+.text           0x00000000      0x388
+                0x00000000                        . = ALIGN (0x4)
+ *(.text.init)
+ .text.init     0x00000000       0x30 /tmp/ccPhoouK.o
+                0x00000000                _start
+ *(.text)
+ *(.text.*)
+ .text.xnor_match32
+                0x00000030       0xa4 /tmp/cca396Yy.o
+ .text.binary_threshold_layer.constprop.0
+                0x000000d4      0x124 /tmp/cca396Yy.o
+ .text.finn_lfc_inference
+                0x000001f8      0x11c /tmp/cca396Yy.o
+ .text.startup.main
+                0x00000314       0x74 /tmp/cca396Yy.o
+                0x00000314                main
+
+.mailbox        0x20000000     0x1000
+                0x20000000                        . = ALIGN (0x4)
+                0x20001000                        . = (. + 0x1000)
+ *fill*         0x20000000     0x1000 
+
+.rodata         0x20001000    0x5aee4
+                0x20001000                        . = ALIGN (0x4)
+ *(.rodata)
+ *(.rodata.*)
+ .rodata.lfc_polarity2
+                0x20001000       0x80 /tmp/cca396Yy.o
+ .rodata.lfc_threshold2
+                0x20001080      0x800 /tmp/cca396Yy.o
+ .rodata.lfc_polarity1
+                0x20001880       0x80 /tmp/cca396Yy.o
+ .rodata.lfc_threshold1
+                0x20001900      0x800 /tmp/cca396Yy.o
+ .rodata.lfc_polarity0
+                0x20002100       0x80 /tmp/cca396Yy.o
+ .rodata.lfc_threshold0
+                0x20002180      0x800 /tmp/cca396Yy.o
+ .rodata.lfc_w3
+                0x20002980      0x500 /tmp/cca396Yy.o
+ .rodata.lfc_w2
+                0x20002e80    0x20000 /tmp/cca396Yy.o
+ .rodata.lfc_w1
+                0x20022e80    0x20000 /tmp/cca396Yy.o
+ .rodata.lfc_w0
+                0x20042e80    0x19000 /tmp/cca396Yy.o
+ .rodata.lfc_input
+                0x2005be80       0x64 /tmp/cca396Yy.o
+ *(.srodata)
+ *(.srodata.*)
+                0x2005bee4                        . = ALIGN (0x4)
+
+.rela.dyn       0x2005bee4        0x0
+ .rela.text.init
+                0x2005bee4        0x0 /tmp/ccPhoouK.o
+
+.data           0x2005bee4        0x0
+                0x2005bee4                        . = ALIGN (0x4)
+                0x2005bee4                        __data_start = .
+ *(.sdata)
+ *(.sdata.*)
+ *(.data)
+ *(.data.*)
+                0x2005bee4                        . = ALIGN (0x4)
+                0x2005bee4                        __data_end = .
+
+.bss            0x2005bee4        0xc
+                0x2005bef0                        . = ALIGN (0x10)
+ *fill*         0x2005bee4        0xc 
+                0x2005bef0                        __bss_start = .
+ *(.sbss)
+ *(.sbss.*)
+ *(.bss)
+ *(.bss.*)
+ *(COMMON)
+                0x2005bef0                        . = ALIGN (0x10)
+                0x2005bef0                        __bss_end = .
+                [!provide]                        PROVIDE (__global_pointer$ = (__data_start + 0x800))
+                0x200c0000                        PROVIDE (_stack_top = (ORIGIN (DMEM) + LENGTH (DMEM)))
+
+/DISCARD/
+ *(.comment)
+ *(.note*)
+ *(.gnu*)
+ *(.riscv.attributes)
+ *(.eh_frame)
+ *(.eh_frame.*)
+ *(.init_array*)
+ *(.fini_array*)
+OUTPUT(/home/hosung/Ho/SoCLab workspace/RV32I-Project/FPGA/BNN/260719_FINN_LFC_RV32I/build/finn_lfc.elf elf32-littleriscv)
