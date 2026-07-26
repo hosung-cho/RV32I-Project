@@ -34,6 +34,8 @@ Single_cycle/testbench/testbench_TFLM/sim/sim_workspace
 Pipeline/testbench/testbench_TFLM_Bootcode/sim/sim_workspace
 Pipeline/testbench/testbench_TFLM/sim/sim_workspace
 
+.Xil
+
 sim_workspace/
 *.jou
 
@@ -56,3 +58,10 @@ Pipeline/sim_tflm/sim.log
 
 
 .agents/
+
+
+# XPC32 Reg-to-Reg generated outputs
+/FPGA/BNN/260726_XPC32_RegToReg/testbench/build/
+/FPGA/BNN/260726_XPC32_RegToReg/testbench/logs/
+/FPGA/BNN/260726_XPC32_RegToReg/software/build/
+/FPGA/BNN/260726_XPC32_RegToReg/software/lfc/build/
