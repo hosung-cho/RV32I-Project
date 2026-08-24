@@ -1,0 +1,4 @@
+testbench/build/
+software/lfc/build/
+vivado/build/
+vivado/logs/

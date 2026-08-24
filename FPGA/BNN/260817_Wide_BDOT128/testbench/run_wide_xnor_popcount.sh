@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+BASE_DIR="$(cd "${PROJECT_DIR}/../260726_XPC32_RegToReg" && pwd)"
+BUILD_DIR="${SCRIPT_DIR}/build/wide_xnor_popcount"
+
+mkdir -p "${BUILD_DIR}"
+
+iverilog -g2012 -Wall \
+  -s wide_xnor_popcount_tb \
+  -o "${BUILD_DIR}/wide_xnor_popcount_tb.out" \
+  "${BASE_DIR}/src/rtl/xnor_popcount32.v" \
+  "${PROJECT_DIR}/src/rtl/wide_xnor_popcount.v" \
+  "${SCRIPT_DIR}/wide_xnor_popcount_tb.v"
+
+vvp "${BUILD_DIR}/wide_xnor_popcount_tb.out"
+
