@@ -3,7 +3,7 @@
 이 폴더에는 Vitis 프로젝트에 import할 PS loader 코드만 있다. Platform과
 application project 생성, 보드 programming은 수동으로 수행한다.
 
-## Vitis application에 넣을 파일
+## LFC Vitis application에 넣을 파일
 
 - `wide_bdot_loader.c`
 - `wide_bdot_images.h`
@@ -12,16 +12,41 @@ application project 생성, 보드 programming은 수동으로 수행한다.
 빌드했을 때 헤더를 갱신하는 개발용 도구다. Vitis application build에는 넣지
 않는다.
 
+## CNV Vitis application에 넣을 파일
+
+- `cnv_bdot_loader.c`
+- `cnv_bdot_images.h`
+
+CNV application에서는 자동 생성된 `helloworld.c`를 Build에서 제외하고
+`cnv_bdot_loader.c`를 source로 등록한다. Sources가 `helloworld.c` 이름을 요구하면
+`cnv_bdot_loader.c`의 내용을 `helloworld.c`로 사용한다. 기존 Wide-BDOT128 XSA와
+bitstream을 그대로 사용하며, CNV 전용 bitstream은 만들 필요가 없다.
+
+CNV loader는 Activation 두 bank를 0으로 초기화한 뒤 IMEM 687 words, DMEM 2,230
+words, Weight 51,616 words(206,464 bytes)를 적재한다. 완료 후 prediction, 10개
+score와 10개 layer checksum을 모두 검사한다. RTL 예상 실행시간이 약 839 ms이므로
+timeout은 3초로 설정되어 있다.
+
+## eBNN Vitis application에 넣을 파일
+
+- `ebnn_bdot_loader.c`
+- `ebnn_bdot_images.h`
+
+eBNN도 기존 Wide-BDOT128 XSA와 bitstream을 그대로 사용한다. Loader는 IMEM
+1,481 words, DMEM 690 words, Weight 160 words(640 bytes)를 적재하고 Activation
+두 bank를 0으로 초기화한다. 완료 후 prediction 5, activation checksum,
+BDOT count와 10개 float score bit pattern을 검사한다.
+
 ## 수동 프로젝트 생성
 
 1. `vivado_workspace/260817_Wide_BDOT128/export/Wide_BDOT128_Ultra96V1.xsa`로
    platform을 생성한다.
 2. `psu_cortexa53_0`의 standalone domain을 선택한다.
 3. Empty Application을 생성한다.
-4. `wide_bdot_loader.c`와 `wide_bdot_images.h`를 application에 import한다.
-5. Vitis component의 Sources 목록에 `wide_bdot_loader.c`가 등록된 것을 확인한
-   뒤 자동 생성된 `helloworld.c`를 Build에서 제외한다. Sources 목록이 계속
-   `helloworld.c`를 요구하면 loader 내용을 `helloworld.c`라는 이름으로 교체한다.
+4. 실행할 모델에 맞는 loader와 image header 한 쌍을 application에 import한다.
+5. Vitis component의 Sources 목록에 선택한 loader가 등록된 것을 확인한 뒤 자동
+   생성된 `helloworld.c`를 Build에서 제외한다. Sources 목록이 계속 `helloworld.c`
+   를 요구하면 선택한 loader 내용을 `helloworld.c`라는 이름으로 교체한다.
 6. application을 Clean/Build하고 Hardware에서 실행한다.
 
 이 loader는 `xil_io`, `xil_cache`, `xil_printf`, `xiltimer`, `sleep` BSP API를
@@ -75,6 +100,27 @@ scores=[-182,-94,-34,326,-162,556,54,6,216,-96]
 Wide-BDOT128 FINN LFC PASS
 ```
 
+CNV application의 예상 결과는 다음과 같다.
+
+```text
+Wide-BDOT128 FINN CNV Ultra96-V1 PS loader
+...
+status=1 prediction=3 expected=3 correct=1 layer_checks=1
+scores=[-40,-46,-32,404,-30,24,-14,-28,-16,-42]
+checksums=[c112c55a,d132e492,9ad5c9fa,c038297d,5d36067d,338d91b0,8d98f679,2e9f3c9d,aa108d24,9a737f7e]
+Wide-BDOT128 FINN CNV PASS
+```
+
+eBNN application의 예상 결과는 다음과 같다.
+
+```text
+Wide-BDOT128 eBNN Binary-MNIST Ultra96-V1 PS loader
+...
+status=1 prediction=5 expected=5 correct=1 checksum=82552330 bdot=3250
+score_bits=[be9a0152,bf3c8938,bee0d7fe,4015220b,bfb6ae47,40815608,bd9bda49,3fb3df63,be806104,bfaebdc9]
+Wide-BDOT128 eBNN Binary-MNIST PASS
+```
+
 ## 이미지 갱신
 
 RV32I 프로그램 또는 parameter image를 변경한 경우 프로젝트 루트에서 다음을
@@ -87,3 +133,17 @@ python3 RV32I-Project/FPGA/BNN/260817_Wide_BDOT128/Vitis/generate_wide_bdot_viti
 
 Generator는 IMEM/DMEM 용량, Activation zero padding, Weight 400 KiB 및 사용
 범위를 검사한 뒤 `wide_bdot_images.h`를 다시 만든다.
+
+CNV 이미지를 갱신하려면 다음을 실행한다.
+
+```bash
+RV32I-Project/FPGA/BNN/260817_Wide_BDOT128/software/cnv/build_cnv_bdot.sh
+python3 RV32I-Project/FPGA/BNN/260817_Wide_BDOT128/Vitis/generate_cnv_bdot_vitis_images.py
+```
+
+eBNN 이미지를 갱신하려면 다음을 실행한다.
+
+```bash
+RV32I-Project/FPGA/BNN/260817_Wide_BDOT128/software/ebnn/build_ebnn_bdot.sh
+python3 RV32I-Project/FPGA/BNN/260817_Wide_BDOT128/Vitis/generate_ebnn_bdot_vitis_images.py
+```

@@ -1,33 +1,33 @@
 Archive member included to satisfy reference by file (symbol)
 
 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(adddf3.o)
-                              /tmp/ccY0OTUM.o (__adddf3)
+                              /tmp/ccVlW3Ry.o (__adddf3)
 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(gedf2.o)
-                              /tmp/ccY0OTUM.o (__gtdf2)
+                              /tmp/ccVlW3Ry.o (__gtdf2)
 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(muldf3.o)
-                              /tmp/ccY0OTUM.o (__muldf3)
+                              /tmp/ccVlW3Ry.o (__muldf3)
 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(subdf3.o)
-                              /tmp/ccY0OTUM.o (__subdf3)
+                              /tmp/ccVlW3Ry.o (__subdf3)
 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(fixdfsi.o)
-                              /tmp/ccY0OTUM.o (__fixdfsi)
+                              /tmp/ccVlW3Ry.o (__fixdfsi)
 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(floatsidf.o)
-                              /tmp/ccY0OTUM.o (__floatsidf)
+                              /tmp/ccVlW3Ry.o (__floatsidf)
 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(addsf3.o)
-                              /tmp/ccY0OTUM.o (__addsf3)
+                              /tmp/ccVlW3Ry.o (__addsf3)
 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(divsf3.o)
-                              /tmp/ccY0OTUM.o (__divsf3)
+                              /tmp/ccVlW3Ry.o (__divsf3)
 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(gesf2.o)
-                              /tmp/ccY0OTUM.o (__gesf2)
+                              /tmp/ccVlW3Ry.o (__gesf2)
 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(lesf2.o)
-                              /tmp/ccY0OTUM.o (__ltsf2)
+                              /tmp/ccVlW3Ry.o (__ltsf2)
 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(mulsf3.o)
-                              /tmp/ccY0OTUM.o (__mulsf3)
+                              /tmp/ccVlW3Ry.o (__mulsf3)
 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(subsf3.o)
-                              /tmp/ccY0OTUM.o (__subsf3)
+                              /tmp/ccVlW3Ry.o (__subsf3)
 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(fixsfsi.o)
-                              /tmp/ccY0OTUM.o (__fixsfsi)
+                              /tmp/ccVlW3Ry.o (__fixsfsi)
 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(floatsisf.o)
-                              /tmp/ccY0OTUM.o (__floatsisf)
+                              /tmp/ccVlW3Ry.o (__floatsisf)
 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(muldi3.o)
                               /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(muldf3.o) (__mulsi3)
 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(div.o)
@@ -39,22 +39,22 @@ Archive member included to satisfy reference by file (symbol)
 
 Discarded input sections
 
- .text          0x00000000        0x0 /tmp/ccgbLXal.o
- .data          0x00000000        0x0 /tmp/ccgbLXal.o
- .bss           0x00000000        0x0 /tmp/ccgbLXal.o
+ .text          0x00000000        0x0 /tmp/ccwv5xdh.o
+ .data          0x00000000        0x0 /tmp/ccwv5xdh.o
+ .bss           0x00000000        0x0 /tmp/ccwv5xdh.o
  .riscv.attributes
-                0x00000000       0x1a /tmp/ccgbLXal.o
- .text          0x00000000        0x0 /tmp/ccY0OTUM.o
- .data          0x00000000        0x0 /tmp/ccY0OTUM.o
- .bss           0x00000000        0x0 /tmp/ccY0OTUM.o
+                0x00000000       0x1a /tmp/ccwv5xdh.o
+ .text          0x00000000        0x0 /tmp/ccVlW3Ry.o
+ .data          0x00000000        0x0 /tmp/ccVlW3Ry.o
+ .bss           0x00000000        0x0 /tmp/ccVlW3Ry.o
  .srodata.result_mailbox
-                0x00000000        0x4 /tmp/ccY0OTUM.o
- .bss.temp2     0x00000000       0x68 /tmp/ccY0OTUM.o
- .comment       0x00000000       0x10 /tmp/ccY0OTUM.o
+                0x00000000        0x4 /tmp/ccVlW3Ry.o
+ .bss.temp2     0x00000000       0x68 /tmp/ccVlW3Ry.o
+ .comment       0x00000000       0x10 /tmp/ccVlW3Ry.o
  .note.GNU-stack
-                0x00000000        0x0 /tmp/ccY0OTUM.o
+                0x00000000        0x0 /tmp/ccVlW3Ry.o
  .riscv.attributes
-                0x00000000       0x1c /tmp/ccY0OTUM.o
+                0x00000000       0x1c /tmp/ccVlW3Ry.o
  .data          0x00000000        0x0 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(adddf3.o)
  .bss           0x00000000        0x0 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(adddf3.o)
  .comment       0x00000000       0x10 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(adddf3.o)
@@ -186,14 +186,14 @@ DMEM             0x20000000         0x00020000         xrw
 
 Linker script and memory map
 
-LOAD /tmp/ccgbLXal.o
-LOAD /tmp/ccY0OTUM.o
+LOAD /tmp/ccwv5xdh.o
+LOAD /tmp/ccVlW3Ry.o
 LOAD /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a
 
 .text           0x00000000     0x32f8
                 0x00000000                        . = ALIGN (0x4)
  *(.text.init)
- .text.init     0x00000000       0x30 /tmp/ccgbLXal.o
+ .text.init     0x00000000       0x30 /tmp/ccwv5xdh.o
                 0x00000000                _start
  *(.text)
  .text          0x00000030      0x74c /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(adddf3.o)
@@ -238,18 +238,18 @@ LOAD /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a
  .text          0x00002a1c       0x4c /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(_clzsi2.o)
                 0x00002a1c                __clzsi2
  *(.text.*)
- .text.bdot     0x00002a68      0x130 /tmp/ccY0OTUM.o
+ .text.bdot     0x00002a68      0x130 /tmp/ccVlW3Ry.o
  .text.l_b_conv_pool_bn_bst0
-                0x00002b98      0x454 /tmp/ccY0OTUM.o
+                0x00002b98      0x454 /tmp/ccVlW3Ry.o
                 0x00002b98                l_b_conv_pool_bn_bst0
  .text.l_b_linear_bn_softmax1
-                0x00002fec      0x194 /tmp/ccY0OTUM.o
+                0x00002fec      0x194 /tmp/ccVlW3Ry.o
                 0x00002fec                l_b_linear_bn_softmax1
  .text.ebnn_compute
-                0x00003180       0x3c /tmp/ccY0OTUM.o
+                0x00003180       0x3c /tmp/ccVlW3Ry.o
                 0x00003180                ebnn_compute
  .text.startup.main
-                0x000031bc      0x13c /tmp/ccY0OTUM.o
+                0x000031bc      0x13c /tmp/ccVlW3Ry.o
                 0x000031bc                main
 
 .mailbox        0x20000000     0x1000
@@ -268,15 +268,15 @@ LOAD /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a
  *(.rodata.*)
  *(.srodata)
  *(.srodata.*)
- .srodata.bits  0x2000113c        0x8 /tmp/ccY0OTUM.o
+ .srodata.bits  0x2000113c        0x8 /tmp/ccVlW3Ry.o
  *fill*         0x20001144        0x4 
- .srodata.cst8  0x20001148       0x10 /tmp/ccY0OTUM.o
- .srodata.cst4  0x20001158        0x4 /tmp/ccY0OTUM.o
+ .srodata.cst8  0x20001148       0x10 /tmp/ccVlW3Ry.o
+ .srodata.cst4  0x20001158        0x4 /tmp/ccVlW3Ry.o
                 0x2000115c                        . = ALIGN (0x4)
 
 .rela.dyn       0x2000115c        0x0
  .rela.text.init
-                0x2000115c        0x0 /tmp/ccgbLXal.o
+                0x2000115c        0x0 /tmp/ccwv5xdh.o
 
 .data           0x2000115c      0xb60
                 0x2000115c                        . = ALIGN (0x4)
@@ -286,47 +286,47 @@ LOAD /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a
  *(.data)
  *(.data.*)
  .data.train_labels
-                0x2000115c       0x50 /tmp/ccY0OTUM.o
+                0x2000115c       0x50 /tmp/ccVlW3Ry.o
                 0x2000115c                train_labels
  .data.train_data
-                0x200011ac      0x7a8 /tmp/ccY0OTUM.o
+                0x200011ac      0x7a8 /tmp/ccVlW3Ry.o
                 0x200011ac                train_data
  .data.l_b_linear_bn_softmax1_bn_std
-                0x20001954       0x28 /tmp/ccY0OTUM.o
+                0x20001954       0x28 /tmp/ccVlW3Ry.o
                 0x20001954                l_b_linear_bn_softmax1_bn_std
  .data.l_b_linear_bn_softmax1_bn_mean
-                0x2000197c       0x28 /tmp/ccY0OTUM.o
+                0x2000197c       0x28 /tmp/ccVlW3Ry.o
                 0x2000197c                l_b_linear_bn_softmax1_bn_mean
  .data.l_b_linear_bn_softmax1_bn_gamma
-                0x200019a4       0x28 /tmp/ccY0OTUM.o
+                0x200019a4       0x28 /tmp/ccVlW3Ry.o
                 0x200019a4                l_b_linear_bn_softmax1_bn_gamma
  .data.l_b_linear_bn_softmax1_bn_beta
-                0x200019cc       0x28 /tmp/ccY0OTUM.o
+                0x200019cc       0x28 /tmp/ccVlW3Ry.o
                 0x200019cc                l_b_linear_bn_softmax1_bn_beta
  .data.l_b_linear_bn_softmax1_bl_W
-                0x200019f4      0x1c2 /tmp/ccY0OTUM.o
+                0x200019f4      0x1c2 /tmp/ccVlW3Ry.o
                 0x200019f4                l_b_linear_bn_softmax1_bl_W
  *fill*         0x20001bb6        0x2 
  .data.l_b_linear_bn_softmax1_bl_b
-                0x20001bb8       0x28 /tmp/ccY0OTUM.o
+                0x20001bb8       0x28 /tmp/ccVlW3Ry.o
                 0x20001bb8                l_b_linear_bn_softmax1_bl_b
  .data.l_b_conv_pool_bn_bst0_bn_std
-                0x20001be0       0x28 /tmp/ccY0OTUM.o
+                0x20001be0       0x28 /tmp/ccVlW3Ry.o
                 0x20001be0                l_b_conv_pool_bn_bst0_bn_std
  .data.l_b_conv_pool_bn_bst0_bn_mean
-                0x20001c08       0x28 /tmp/ccY0OTUM.o
+                0x20001c08       0x28 /tmp/ccVlW3Ry.o
                 0x20001c08                l_b_conv_pool_bn_bst0_bn_mean
  .data.l_b_conv_pool_bn_bst0_bn_gamma
-                0x20001c30       0x28 /tmp/ccY0OTUM.o
+                0x20001c30       0x28 /tmp/ccVlW3Ry.o
                 0x20001c30                l_b_conv_pool_bn_bst0_bn_gamma
  .data.l_b_conv_pool_bn_bst0_bn_beta
-                0x20001c58       0x28 /tmp/ccY0OTUM.o
+                0x20001c58       0x28 /tmp/ccVlW3Ry.o
                 0x20001c58                l_b_conv_pool_bn_bst0_bn_beta
  .data.l_b_conv_pool_bn_bst0_bconv_W
-                0x20001c80       0x14 /tmp/ccY0OTUM.o
+                0x20001c80       0x14 /tmp/ccVlW3Ry.o
                 0x20001c80                l_b_conv_pool_bn_bst0_bconv_W
  .data.l_b_conv_pool_bn_bst0_bconv_b
-                0x20001c94       0x28 /tmp/ccY0OTUM.o
+                0x20001c94       0x28 /tmp/ccVlW3Ry.o
                 0x20001c94                l_b_conv_pool_bn_bst0_bconv_b
                 0x20001cbc                        . = ALIGN (0x4)
                 0x20001cbc                        __data_end = .
@@ -339,7 +339,7 @@ LOAD /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a
  *(.sbss.*)
  *(.bss)
  *(.bss.*)
- .bss.temp1     0x20001cc0       0x68 /tmp/ccY0OTUM.o
+ .bss.temp1     0x20001cc0       0x68 /tmp/ccVlW3Ry.o
                 0x20001cc0                temp1
  *(COMMON)
                 0x20001d30                        . = ALIGN (0x10)
@@ -358,7 +358,7 @@ LOAD /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a
  *(.eh_frame.*)
  *(.init_array*)
  *(.fini_array*)
-OUTPUT(/home/hosung/Ho/SoCLab workspace/RV32I-Project/FPGA/BNN/260624_eBNN_Binary_MNIST/build_rv32i/main_ebnn_binary_mnist_rv32i.elf elf32-littleriscv)
+OUTPUT(/home/hosung/Ho/MSMLab_workspace/RV32I-Project/FPGA/BNN/260624_eBNN_Binary_MNIST/build_rv32i/main_ebnn_binary_mnist_rv32i.elf elf32-littleriscv)
 
 .debug_info     0x00000000     0x35cb
  .debug_info    0x00000000      0x582 /opt/riscv32i/lib/gcc/riscv32-unknown-elf/15.2.0/libgcc.a(adddf3.o)

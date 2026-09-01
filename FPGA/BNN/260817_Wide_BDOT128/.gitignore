@@ -1,4 +1,6 @@
 testbench/build/
 software/lfc/build/
+software/cnv/build/
 vivado/build/
 vivado/logs/
+/build/

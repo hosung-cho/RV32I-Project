@@ -49,7 +49,19 @@ testbench/  directed/random regression
 ./testbench/run_bdot_cpu_control.sh
 ./testbench/run_rv32i_bdot_integration.sh
 ./testbench/run_rv32i_lfc_bdot.sh
+./testbench/run_rv32i_cnv_bdot.sh
+./testbench/run_rv32i_ebnn_bdot.sh
 ```
+
+FINN CNV-W1A1은 첫 Q1.7 convolution을 CPU에 유지하고, 이후 binary
+convolution/FC를 BDOT128로 실행한다. RTL full inference에서 prediction 3,
+class score 및 10개 layer checksum이 golden과 일치했다. 자세한 결과는
+`reports/cnv_bdot128_rtl_result.md`에 기록했다.
+
+eBNN Binary-MNIST는 9-bit binary convolution과 360-bit FC에 BDOT128을
+적용했다. 첫 MNIST sample의 prediction 5가 기존 RV32I 결과와 일치했고,
+1,044,728 cycles로 통과했다. 자세한 결과는
+`reports/ebnn_bdot128_rtl_result.md`에 기록했다.
 
 `run_bdot_dual_clock_integration.sh`는 이전 35↔105 MHz accelerator CDC 구조를
 재현하는 비교용 시험으로만 보존한다. 현재 CPU 통합형 기본 회귀에는 포함하지 않는다.

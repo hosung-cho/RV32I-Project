@@ -1,5 +1,5 @@
 
-/home/hosung/Ho/SoCLab workspace/RV32I-Project/FPGA/BNN/260624_eBNN_Binary_MNIST/build_rv32i/main_ebnn_binary_mnist_rv32i.elf:     file format elf32-littleriscv
+/home/hosung/Ho/MSMLab_workspace/RV32I-Project/FPGA/BNN/260624_eBNN_Binary_MNIST/build_rv32i/main_ebnn_binary_mnist_rv32i.elf:     file format elf32-littleriscv
 
 
 Disassembly of section .text:

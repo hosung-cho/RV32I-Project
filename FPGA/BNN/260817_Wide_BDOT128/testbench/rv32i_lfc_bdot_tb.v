@@ -92,6 +92,7 @@ module rv32i_lfc_bdot_tb;
     integer pc_hold_cycles;
     integer bdot_busy_cpu_cycles;
     integer accel_busy_cycles;
+    integer completion_seen;
 
     assign activation_rdata = act1_accel_select
                             ? act1_accel_rdata : act0_accel_rdata;
@@ -237,7 +238,10 @@ module rv32i_lfc_bdot_tb;
             end
 
             $display("TB PASS: rv32i_lfc_bdot cycles=%0d bdot=3082 blocks=23632", cpu_cycles);
+            completion_seen = 1;
+`ifndef VERILATOR_IDLE_SAIF
             $finish;
+`endif
         end
     endtask
 
@@ -276,7 +280,7 @@ module rv32i_lfc_bdot_tb;
                 error_count = error_count + 1;
                 $display("FAIL accelerator error pc=%08x", pc);
             end
-            if (dmem[0] == 1)
+            if ((dmem[0] == 1) && (completion_seen == 0))
                 finish_and_check();
             if (cpu_cycles >= TIMEOUT_CPU_CYCLES) begin
                 $display("TB FAIL timeout pc=%08x inst=%08x bdot=%0d blocks=%0d", pc, inst, bdot_count, block_read_count);
@@ -310,7 +314,20 @@ module rv32i_lfc_bdot_tb;
         pc_hold_cycles = 0;
         bdot_busy_cpu_cycles = 0;
         accel_busy_cycles = 0;
+        completion_seen = 0;
 
+`ifdef XSIM_POWER_SAIF
+        // Short fixed names avoid simulator-specific plusarg/string handling.
+        // The SAIF runner stages these immutable input images in its work dir.
+        imem_file = "imem.hex";
+        dmem_file = "dmem.hex";
+        weight_file = "weight_128.hex";
+        act0_file = "activation0.hex";
+        act1_file = "activation1.hex";
+        golden0_file = "golden_activation0.hex";
+        golden1_file = "golden_activation1.hex";
+        golden2_file = "golden_activation2.hex";
+`else
         if (!$value$plusargs("IMEM=%s", imem_file)) $fatal(1, "missing IMEM");
         if (!$value$plusargs("DMEM=%s", dmem_file)) $fatal(1, "missing DMEM");
         if (!$value$plusargs("WEIGHT=%s", weight_file)) $fatal(1, "missing WEIGHT");
@@ -319,6 +336,7 @@ module rv32i_lfc_bdot_tb;
         if (!$value$plusargs("GOLDEN0=%s", golden0_file)) $fatal(1, "missing GOLDEN0");
         if (!$value$plusargs("GOLDEN1=%s", golden1_file)) $fatal(1, "missing GOLDEN1");
         if (!$value$plusargs("GOLDEN2=%s", golden2_file)) $fatal(1, "missing GOLDEN2");
+`endif
 
         for (i = 0; i < IMEM_WORDS; i = i + 1) imem[i] = 32'h00000013;
         for (i = 0; i < DMEM_WORDS; i = i + 1) dmem[i] = 32'd0;
@@ -348,5 +366,54 @@ module rv32i_lfc_bdot_tb;
 
     always #14.286 cpu_clk = ~cpu_clk;
     always #4.762 accel_clk = ~accel_clk;
+
+`ifdef VERILATOR_POWER_SAIF
+    // The native SAIF backend records only the DUT logic and its
+    // memory-facing interfaces. Initialization and reset activity are excluded
+    // by opening the trace only after reset is released.
+    initial begin
+        @(negedge reset);
+        $dumpfile("lfc_inference.saif");
+        $dumpvars(0, cpu, accel);
+        $dumpvars(
+            0,
+            cpu_clk, accel_clk, pc, inst,
+            cpu_mem_write, cpu_mem_addr, cpu_mem_wdata,
+            cpu_byte_enable, cpu_mem_rdata,
+            activation_en, activation_addr, activation_rdata,
+            weight_en, weight_addr, weight_rdata,
+            act0_accel_select, act1_accel_select,
+            act0_accel_rdata, act1_accel_rdata,
+            weight_accel_select
+        );
+        wait (dmem[0] == 1);
+        $dumpoff;
+    end
+`endif
+
+`ifdef VERILATOR_IDLE_SAIF
+    // Post-inference baseline: clocks remain active while software stays in
+    // its completion loop. Record a fixed 10,000 CPU-cycle window.
+    initial begin
+        wait (completion_seen == 1);
+        @(negedge cpu_clk);
+        $dumpfile("lfc_idle.saif");
+        $dumpvars(0, cpu, accel);
+        $dumpvars(
+            0,
+            cpu_clk, accel_clk, pc, inst,
+            cpu_mem_write, cpu_mem_addr, cpu_mem_wdata,
+            cpu_byte_enable, cpu_mem_rdata,
+            activation_en, activation_addr, activation_rdata,
+            weight_en, weight_addr, weight_rdata,
+            act0_accel_select, act1_accel_select,
+            act0_accel_rdata, act1_accel_rdata,
+            weight_accel_select
+        );
+        repeat (10000) @(posedge cpu_clk);
+        $dumpoff;
+        $finish;
+    end
+`endif
 
 endmodule
